@@ -1,0 +1,18 @@
+external/
+.venv/
+core
+private/
+__pycache__/
+
+# my own release checklist (not published)
+CHECKLIST.md
+
+# my own release notes
+release-notes/
+
+# macOS's folder settings, editors' and tools' own (not the project's)
+.DS_Store
+.vscode/
+.idea/
+*.swp
+.claude/settings.local.json

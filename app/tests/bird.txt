@@ -1,0 +1,79 @@
+# The Bestiary's songbird (0.7.0): LFO opens the Bestiary, ALGORITHM picks the songbird (its airway on the second core
+# at 2x); a key held plays its two voices (C4 three octaves up: CHIMERA's creatureKeyHz centres its 400..9000 Hz on
+# middle C), PLAY its flute phrase, PRESET the canary trill with FX at a key; SEL its throat page; kept through a
+# reboot; ALGORITHM back down to the seal; LFO back to the human voice.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/bird.txt app/build/host
+wait 400
+listen
+tap LFO
+said BESTIARY
+wait 300
+spin ALGO 1
+said CREATURE
+wait 300
+expect creature 1
+expect creaudio 1
+shot bird.png
+wav bird-key.wav
+peakreset
+key 7 down
+wait 700
+expect sealgate >90
+expect sealhz >2080
+expect sealhz <2105
+shot bird-key.png
+key 7 up
+wait 300
+expect sealgate <5
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# PLAY: the flute phrase (1.2 s)
+wav bird-flute.wav
+peakreset
+tap PLAY
+wait 200
+expect sealcall 0
+wait 1300
+expect sealcall -1
+wavstop
+expect peak_db_min -30
+# PRESET: the trill, at a key with FX
+spin PRESET 1
+expect sealpick 1
+said TRILL
+press FX
+tapkey 7
+release FX
+wait 100
+expect sealcall 1
+wait 1500
+expect sealcall -1
+# SEL: the throat page; back, K1 the interval (7 st, 0.48 a detent)
+tap SEL
+expect sealpage 1
+shot bird-page2.png
+tap SEL
+spin K1 5
+expect birdint 94
+tap SAVE
+wait 100
+said SAVED
+reboot
+wait 400
+tap LFO
+wait 400
+expect creature 1
+expect creaudio 1
+expect birdint 94
+expect sealpick 1
+# ALGORITHM back: the cat again; LFO: the human voice
+spin ALGO -1
+said CAT
+wait 300
+expect creature 0
+expect creaudio 0
+tap LFO
+said HUMAN
+wait 300
+expect body 0

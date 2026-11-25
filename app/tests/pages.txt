@@ -1,0 +1,47 @@
+# The knob pages, VOWEL mode and the presets in the simulator: page 1 and a knob turned, SELECT to page 2, FX to VOWEL
+# (a key held while K1 / K2 move the vowel), FX + key recalls a snapshot and held a second stores one, PRESET loads a
+# voice preset when it rests, SAVE keeps it through a reboot, HOME is back to WORDS.
+#   app/build/host/fmb-vocal_host app/tests/pages.txt app/build/host
+wait 300
+shot pages_sing.png
+spin K1 10
+turn SELECT 1
+spin K1 12
+wait 200
+shot pages_shape.png
+wav vowel.wav
+tap FX
+wait 200
+key 7 down
+wait 500
+spin K1 25
+wait 500
+spin K2 20
+wait 600
+shot pages_vowel.png
+key 7 up
+wait 300
+press FX
+key 9 down
+wait 150
+key 9 up
+release FX
+key 7 down
+wait 700
+key 7 up
+press FX
+key 3 down
+wait 1300
+key 3 up
+release FX
+wait 300
+wavstop
+spin PRESET 3
+wait 600
+shot pages_preset.png
+tap HOME
+tap SAVE
+wait 200
+reboot
+wait 500
+shot pages_reboot.png

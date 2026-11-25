@@ -1,0 +1,30 @@
+# The debug page's K1 (GLO): the anatomy's rate, every 4th control step at first; K1 turns it to every 8th or every
+# 2nd, stopping at either end (every step is not offered: it overloads core 1); speaking at each; back to every 4th.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/anatomy.txt app/build/host
+wait 400
+listen
+expect anat 4
+tap GLO
+wait 100
+spin K1 1
+said EVERY 2ND STEP
+expect anat 2
+spin K1 1
+expect anat 2
+tap PLAY
+wait 1200
+said SPEAKING
+spin K1 -1
+said EVERY 4TH STEP
+expect anat 4
+spin K1 -1
+said EVERY 8TH STEP
+expect anat 8
+spin K1 -1
+expect anat 8
+tap PLAY
+wait 1200
+expect peak_db_min -40
+spin K1 1
+expect anat 4
+tap GLO

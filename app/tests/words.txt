@@ -1,0 +1,24 @@
+# The words in the host simulator: the keys sing the lyric's first four syllables ("Hard-er, bet-ter"), the second and
+# fourth legato; then PLAY speaks the lyric.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/words.txt app/build/host
+wait 200
+wav words.wav
+key 7 down
+wait 400
+key 9 down
+key 7 up
+wait 400
+key 9 up
+wait 150
+key 7 down
+wait 400
+key 9 down
+key 7 up
+wait 500
+shot words.png
+key 9 up
+wait 600
+tap PLAY
+wait 3000
+shot speaking.png
+wavstop

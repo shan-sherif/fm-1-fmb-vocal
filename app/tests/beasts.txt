@@ -1,0 +1,101 @@
+# The Bestiary's alligator and elephant (0.9.0): LFO opens the Bestiary, ALGORITHM three steps on picks the alligator
+# (three steps on, after the cat, the songbird and the seal: CHIMERA's mammal airway at half the rate, interpolated up). A key held roars at its pitch (C4 three octaves down:
+# CHIMERA's creatureKeyHz centres its 12..120 Hz on middle C), PLAY its bellow. ALGORITHM on: the elephant; a key
+# rumbles (C4 four octaves down), PRESET picks the trumpet (the lip valve at the trunk's base), PLAY plays it; SEL its
+# airway page; kept through a reboot; ALGORITHM on wraps to the cat; LFO back to the human voice.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/beasts.txt app/build/host
+wait 400
+listen
+tap LFO
+said BESTIARY
+wait 300
+spin ALGO 3
+said CREATURE
+wait 300
+expect creature 3
+expect creaudio 3
+wav gator-key.wav
+peakreset
+key 7 down
+wait 900
+expect sealgate >90
+expect sealhz >31
+expect sealhz <35
+shot gator.png
+key 7 up
+wait 400
+expect sealgate <5
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# PLAY: the bellow (2 s, rising into chaos)
+wav gator-bellow.wav
+peakreset
+tap PLAY
+wait 200
+expect sealcall 0
+wait 1000
+shot gator-bellow.png
+wait 1000
+expect sealcall -1
+wavstop
+expect peak_db_min -30
+# ALGORITHM on: the elephant; a key rumbles at 16 Hz
+spin ALGO 1
+said CREATURE
+wait 300
+expect creature 4
+expect creaudio 4
+wav ele-key.wav
+peakreset
+key 7 down
+wait 900
+expect sealgate >90
+expect sealhz >15
+expect sealhz <18
+key 7 up
+wait 400
+wavstop
+expect peak_db_max -1
+expect peak_db_min -40
+# PRESET: the trumpet; PLAY: the lips buzz into the trunk
+spin PRESET 1
+expect sealpick 1
+said TRUMPET
+wav ele-trumpet.wav
+peakreset
+tap PLAY
+wait 300
+expect sealcall 1
+expect elelips >0
+shot elephant.png
+wait 1300
+expect sealcall -1
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# SEL: its airway page (the trunk)
+tap SEL
+expect sealpage 1
+shot elephant-page2.png
+tap SEL
+tap SAVE
+wait 100
+said SAVED
+reboot
+wait 400
+tap LFO
+wait 400
+expect creature 4
+expect creaudio 4
+expect sealpick 1
+# ALGORITHM on: round to the cat; LFO: the human voice
+spin ALGO 1
+said CAT
+wait 300
+expect creature 0
+expect creaudio 0
+tap LFO
+said HUMAN
+wait 300
+expect body 0

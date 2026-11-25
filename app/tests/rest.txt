@@ -1,0 +1,11 @@
+# The voice rests after the key: a second key later still sings (it wakes), and rest comes back.
+wav rest.wav
+key 7 down
+wait 500
+key 7 up
+wait 600
+key 12 down
+wait 500
+key 12 up
+wait 600
+wavstop

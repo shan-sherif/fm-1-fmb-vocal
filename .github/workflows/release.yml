@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Shan-Sherif
+# Releases, built from source and signed on GitHub by The Firmware Hub's shared workflow (zvenson/fm1-build, at its
+# reviewed tag v1): it installs JieLi's toolchain and the AC79 SDK, runs the build and test commands below, attests
+# the packages (the hub's card then shows "Built from source on GitHub") and, on a version tag, publishes them as
+# that tag's release, with their SHA256SUMS. After fm1-base's template (app/.github/workflows/release.yml).
+#   a tag vX.Y.Z:  the firmware X.Y.Z (identity FM-1_043XXYYZZ), the host tests, then the release vX.Y.Z. The tag
+#                  must match app/fm1.toml's version (the one the site, built by pages.yml, installs)
+#   by hand (Actions > release > Run workflow): the same build as X.Y.Z-test, no release: the packages are a
+#                  download on the run's page (a trial)
+name: release
+on:
+  push:
+    tags: ['v[0-9]*']
+  workflow_dispatch:
+jobs:
+  build:
+    uses: zvenson/fm1-build/.github/workflows/build.yml@v1
+    permissions:
+      contents: write          # the release
+      id-token: write          # the signing certificate
+      attestations: write      # the attestation
+    with:
+      sdk: true
+      tests-block: true
+      build: |
+        set -euo pipefail
+        # (fm1-base and its felucca-bsp are plain folders in this repository: base/, base/bsp/)
+        # the fonts' tabular figures (base/tools/gen_font.py): Pillow's raqm, which loads the system's FriBiDi
+        sudo apt-get install -y -qq libfribidi0
+        python3 -m pip install -q fonttools
+        python3 -c "from PIL import features; assert features.check('raqm'), 'Pillow without raqm'"
+        want=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' app/fm1.toml)
+        if [ "$GITHUB_REF_TYPE" = tag ]; then
+          VER="${GITHUB_REF_NAME#v}"
+          [ "$VER" = "$want" ] || { echo "the tag $GITHUB_REF_NAME is not app/fm1.toml's version $want"; exit 1; }
+        else
+          VER="$want-test"
+        fi
+        python3 base/tools/build.py app --release "$VER" --sdk "$AC79_SDK"
+        # the release's files in the checkout's root: SHA256SUMS names them as they are given (a folder in front would
+        # make `shasum -c` fail beside the downloads)
+        cp "app/build/fmb-vocal-$VER.fwsc" .
+        cp app/build/fmb-vocal.bin "fmb-vocal-$VER.bin"
+        cp app/build/firmware.json "fmb-vocal-$VER-firmware.json"   # the firmware described for hubs
+      packages: fmb-vocal-*
+      # the host simulator's tests (the firmware's own code, on the computer): the voice, the pages, the words, the
+      # Studio's protocol, a stress run
+      test: |
+        set -euo pipefail
+        python3 base/tools/build.py app --host
+        for t in pages rest screens silence stress studio words edit bodies expression crack beat melody seal bird sing beasts cat brain anatomy blend tongue; do
+          echo "test: $t"
+          app/build/host/fmb-vocal_host "app/tests/$t.txt" "$RUNNER_TEMP/shots"
+        done

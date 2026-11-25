@@ -1,0 +1,28 @@
+# Build settings (fm1-base tools/build.py). Started from fm1-base's template.
+name = "FMB-VOCAL"             # the build's file names (fmb-vocal-X.Y.Z.fwsc); APP_NAME is in app.h. The pages say "FMB Vocal"
+version = "0.1.0"             # the release: the site (GitHub Pages, on a push to main), the package, the boot screen
+id_prefix = "FM-1_043"         # package identity, the same number for every version: the plain identity (what
+                               # M-UPGRADE and the plain handshake read) is always FM-1_043; dev builds are FM-1_04300,
+                               # releases FM-1_043XXYYZZ (the version, for the installer's check after an install)
+usb_manufacturer = "fm-1-fmb-vocal"
+usb_product = "FMB Vocal FM-1"
+o2 = ["../engine/ch_tract.c", "../engine/ch_wave.c", "../engine/ch_control.c", "../engine/ch_speech.c", "../engine/ch_live.c", "../engine/ch_profile.c", "../engine/ch_beat.c", "../engine/ch_creature.c", "../engine/ch_song.c"]   # the voice (CHIMERA's port, MIT), each at -O2
+o2_cflags = ["-DCH_FM1"]       # the engine's maths from fm1-base's fastmath.h
+include = ["../engine", "dsp"]
+cpu2 = true                    # the airway renders on the second core
+cpu2_fallback = true           # if the second core fails: one core until power-off, not a restart
+words = "words.tsv"
+ble = false
+emu = ["midi", "port"]          # the browser emulator: USB MIDI (the Studio's SysEx) and a port other pages reach                    # no radio: the voice needs the RAM and the CPU
+# the site (tools/make_site.py; published by .github/workflows/pages.yml)
+tagline = "a physically modelled singing voice for the M-VAVE FM-1"
+repo = "https://github.com/shan-sherif/fm-1-fmb-vocal"
+licence = "MPL-2.0 AND MIT"   # fm1-base's and the template's files MPL-2.0, CHIMERA's port and this project's MIT (LICENSE)
+credits = "Voice engine based on CHIMERA by Jameson Hodge (MIT, github.com/jamesondh/chimera-vocal-synth), on fm1-base by Charles Vestal and felucca-bsp by Leo Kuroshita (MPL-2.0)."
+# firmware.json, for firmware hubs (fm1-base docs/FIRMWARE-JSON.md)
+author = "shan-sherif"
+description = "A simulated human voice: lungs, vocal folds, throat, mouth and nose, an airway that sings. Type words and the keys sing them a syllable at a time or on built-in tunes, play vowels and shape the mouth and tongue with the knobs, blend the male, female and child bodies, beatbox with a step sequencer, or play the seal, songbird, alligator and elephant. Voice engine based on CHIMERA by Jameson Hodge (MIT). Unofficial; not affiliated with M-VAVE, and not endorsed by CHIMERA's author."
+tags = ["synth", "experimental"]
+install = "https://shan-sherif.github.io/fm-1-fmb-vocal/install/"
+site = "https://shan-sherif.github.io/fm-1-fmb-vocal/"
+screenshot = "app/docs/img/home-words.png"

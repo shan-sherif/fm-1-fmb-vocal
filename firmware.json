@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "fmb-vocal",
+  "name": "fm-1-fmb-vocal",
+  "author": "shan-sherif",
+  "license": "MPL-2.0 AND MIT",
+  "tagline": "a physically modelled singing voice for the M-VAVE FM-1",
+  "description": "A simulated human voice: lungs, vocal folds, throat, mouth and nose, an airway that sings. Type words and the keys sing them a syllable at a time or on built-in tunes, play vowels and shape the mouth and tongue with the knobs, blend the male, female and child bodies, beatbox with a step sequencer, or play the seal, songbird, alligator and elephant. Voice engine based on CHIMERA by Jameson Hodge (MIT). Unofficial; not affiliated with M-VAVE, and not endorsed by CHIMERA's author.",
+  "tags": ["synth", "experimental"],
+  "install": "https://shan-sherif.github.io/fm-1-fmb-vocal/install/",
+  "site": "https://shan-sherif.github.io/fm-1-fmb-vocal/",
+  "source": "https://github.com/shan-sherif/fm-1-fmb-vocal",
+  "screenshot": "app/docs/img/home-words.png",
+  "hardware": {
+    "models": ["FM-1"],
+    "flash": ["856014", "B36014"],
+    "features": ["usb-audio-in", "usb-audio-out", "second-core", "velocity", "pressure", "screen-reader"]
+  },
+  "credits": "Voice engine based on CHIMERA by Jameson Hodge (MIT, github.com/jamesondh/chimera-vocal-synth), on fm1-base by Charles Vestal and felucca-bsp by Leo Kuroshita (MPL-2.0)."
+}

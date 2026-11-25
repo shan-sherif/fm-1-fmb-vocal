@@ -1,0 +1,117 @@
+# The beatbox (0.7.0, SEQ): the pads, a beat played and heard, the beat, tempo and swing changed, steps written in
+# STEP EDIT (FX: accented), saved through a reboot, then left: the words sing again.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/beat.txt app/build/host
+wait 400
+listen
+tap SEQ
+wait 50
+expect beat 1
+expect beatplay 0
+expect beatslot 0
+said BEAT
+# a pad: the lowest white key is the kick, heard once the mouth has made it
+wav beat-pads.wav
+tapkey 0
+wait 200
+expect beatname 0
+wait 200
+expect heard 0
+# the name goes back to READY and stays there (0.7.0's first build named it again with each timing readout)
+expect beatname -1
+wait 600
+expect beatname -1
+wait 500
+expect beatname -1
+tapkey 2
+wait 400
+expect heard 3
+# a black key: the hum
+tapkey 1
+wait 500
+expect heard 9
+wavstop
+# PLAY: "Boots and cats" (B . t . | Pf . t .), two bars at 96
+wav beat-boots.wav
+peakreset
+tap PLAY
+wait 100
+expect beatplay 1
+wait 1200
+shot beat-playing.png
+wait 1300
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+expect beatstep >-1
+# PRESET: the next beat while it plays; K1 tempo, K2 swing
+spin PRESET 1
+wait 50
+expect beatslot 1
+expect beatbpm 122
+spin K1 4
+expect beatbpm 126
+spin K2 5
+expect beatswing 10
+expect beatdirty 1
+# GLO shows the timings while it plays, and GLO again the beatbox
+tap GLO
+wait 100
+expect glo 1
+expect beatplay 1
+tap GLO
+wait 100
+expect glo 0
+tap PLAY
+wait 300
+expect beatplay 0
+# the last beat (empty): write a kick, a rest, a snare (accented: FX held), the cursor moving on
+spin PRESET 6
+wait 50
+expect beatslot 7
+expect beats0 -1
+tap EDIT
+expect beatedit 1
+expect beatcur 0
+tapkey 0
+wait 50
+expect beats0 0
+expect beatcur 1
+tap OCT+
+expect beats1 -1
+expect beatcur 2
+press FX
+tapkey 2
+release FX
+wait 50
+expect beats2 3
+expect beatcur 3
+spin K3 -1
+expect beatcur 2
+tap OCT-
+expect beats2 -1
+expect beatcur 1
+shot beat-edit.png
+# SAVE: kept through a reboot
+tap SAVE
+wait 100
+expect beatdirty 0
+said SAVED
+reboot
+wait 400
+tap SEQ
+wait 50
+spin PRESET 7
+wait 50
+expect beatslot 7
+expect beats0 0
+spin PRESET -6
+expect beatslot 1
+expect beatbpm 126
+# HOME leaves: the words again (SEQ goes on to MELODY: melody.txt)
+tap HOME
+wait 50
+expect beat 0
+said WORDS
+tap PLAY
+wait 1500
+said SPEAKING

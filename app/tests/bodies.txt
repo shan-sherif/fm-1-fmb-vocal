@@ -1,0 +1,137 @@
+# CHIMERA's three bodies in the simulator (from 0.5.0): ALGORITHM picks male, female, child or BLENDED (1.0.0's blend), switched when the knob
+# rests; the audio takes the new anatomy at its next block. Each body holds a vowel in VOWEL mode (FX) and sings a
+# word in WORDS, recorded, and must sound (no silence, no overload); the vowel pad's range follows the body.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/bodies.txt app/build/host
+wait 400
+listen
+expect body 0
+expect f1x 467
+# FEMALE: named at once, switched when ALGORITHM rests
+spin ALGO 1
+said FEMALE
+expect body 0
+wait 500
+expect body 1
+expect body_audio 1
+expect f1x 541
+# a held vowel and a sung word in each body, recorded
+tap FX
+wait 300
+spin K1 22
+spin K2 18
+wait 200
+wav body-female-vowel.wav
+peakreset
+key 0 down
+wait 1200
+key 0 up
+wait 300
+wavstop
+expect peak_db_min -30
+expect peak_db_max -1
+tap HOME
+wait 300
+wav body-female-words.wav
+peakreset
+key 7 down
+wait 500
+key 9 down
+key 7 up
+wait 500
+key 9 up
+wait 400
+wavstop
+expect peak_db_min -30
+expect peak_db_max -1
+shot body-female.png
+# CHILD
+spin ALGO 1
+said CHILD
+wait 500
+expect body 2
+expect body_audio 2
+expect f1x 594
+tap FX
+wait 300
+wav body-child-vowel.wav
+peakreset
+key 0 down
+wait 1200
+key 0 up
+wait 300
+wavstop
+expect peak_db_min -30
+expect peak_db_max -1
+tap HOME
+wait 300
+wav body-child-words.wav
+peakreset
+key 7 down
+wait 500
+key 9 down
+key 7 up
+wait 500
+key 9 up
+wait 400
+wavstop
+expect peak_db_min -30
+expect peak_db_max -1
+shot body-child.png
+# one further: BLENDED (its own blend: half male, half female until set), and no further
+spin ALGO 2
+said BLENDED
+wait 500
+expect bodysel 3
+expect gender 50
+expect age 0
+expect bodyk 950
+spin ALGO -1
+said CHILD
+wait 500
+expect body 2
+expect bodysel 2
+# PLAY speaks in the child's voice
+wav body-child-speak.wav
+peakreset
+tap PLAY
+wait 2500
+wavstop
+expect peak_db_min -30
+# back to MALE, the same vowel and word as the others
+spin ALGO -2
+said MALE
+wait 500
+expect body 0
+expect body_audio 0
+expect f1x 467
+tap FX
+wait 300
+wav body-male-vowel.wav
+peakreset
+key 0 down
+wait 1200
+key 0 up
+wait 300
+wavstop
+expect peak_db_min -30
+tap HOME
+wait 300
+wav body-male-words.wav
+key 7 down
+wait 500
+key 9 down
+key 7 up
+wait 500
+key 9 up
+wait 400
+wavstop
+# SAVE keeps the body in the preset: it comes back after a power cycle
+spin ALGO 1
+wait 500
+expect body 1
+tap SAVE
+wait 100
+reboot
+wait 500
+expect body 1
+expect body_audio 1

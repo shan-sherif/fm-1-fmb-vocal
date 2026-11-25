@@ -1,0 +1,62 @@
+# Expression in the simulator (from 0.6.0): a held key's pressure deepens the vibrato (up to 50 cents more); MIDI in's
+# aftertouch does the same while a MIDI note is held; its pitch bend bends +-2 semitones; its mod wheel (CC1) adds
+# breath, from the Breathy knob's up to all.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/expression.txt app/build/host
+wait 400
+# a key held lightly: no more vibrato; pressed hard: more (the simulator's full press reads 77 of 127: 30 cents)
+key 7 down 100 0
+wait 200
+expect xvib 0
+key 7 up
+wait 100
+key 7 down 100 100
+wait 300
+expect xvib 30
+key 7 up
+wait 100
+expect xvib 0
+# MIDI in's aftertouch, while a MIDI note is held (channel pressure, then poly aftertouch); over with the note
+midi 90 3C 64
+midi D0 7F 00
+wait 20
+expect xvib 50
+midi A0 3C 40
+wait 20
+expect xvib 25
+midi 80 3C 00
+wait 20
+expect xvib 0
+# pitch bend: +-2 semitones, the middle none
+midi E0 7F 7F
+wait 20
+expect xbend 200
+midi E0 00 00
+wait 20
+expect xbend -200
+midi E0 00 40
+wait 20
+expect xbend 0
+# the mod wheel: Breathy's 15 % (NATURAL) up to all, and back
+expect xbreath 15
+midi B0 01 7F
+wait 20
+expect xbreath 100
+midi B0 01 40
+wait 20
+expect xbreath 58
+midi B0 01 00
+wait 20
+expect xbreath 15
+# the bend in the sound: VOWEL, C4 held, bent up (heard as 294 Hz against 261: tests by ear and in the lab)
+tap FX
+wait 300
+wav expression-bend.wav
+key 7 down 100 0
+wait 600
+midi E0 7F 7F
+wait 600
+midi E0 00 40
+wait 300
+key 7 up
+wait 300
+wavstop

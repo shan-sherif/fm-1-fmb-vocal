@@ -1,0 +1,78 @@
+# CHIMERA's tunes (0.8.0, ENV): slot 1's words ("Hello there, I am a voice made of air.") sung on Dreamy, fitted to
+# its two phrases and sent a phrase at a time; the notes move on with the song's clock; it ends by itself; PRESET the
+# next tune, K1 tempo, K2 key, kept through a reboot; ENV leaves.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/sing.txt app/build/host
+wait 400
+listen
+tap ENV
+said SING
+wait 50
+expect sing 1
+expect singing 0
+expect tune 0
+shot sing.png
+wav sing-dreamy.wav
+peakreset
+tap PLAY
+said SINGING
+wait 100
+expect singing 1
+expect songsent >0
+wait 1000
+expect songnote >0
+shot sing-playing.png
+wait 3000
+expect songnote >5
+wait 4000
+expect songsent 10
+expect songnotes 10
+wait 8000
+expect singing 0
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# PRESET, K1, K2
+spin PRESET 1
+said TUNE
+expect tune 1
+spin K1 -4
+expect tempo 80
+spin K2 3
+expect key 3
+tap SAVE
+wait 100
+said SAVED
+reboot
+wait 400
+tap ENV
+wait 50
+expect tune 1
+expect tempo 80
+expect key 3
+# PLAY, then PLAY again stops it
+tap PLAY
+wait 1500
+expect singing 1
+# GLO shows the timings while it sings, and GLO again the SING page
+tap GLO
+wait 100
+expect glo 1
+expect sing 1
+expect singing 1
+# K2 there: the treble shelf on, off (the debug page's knobs, not the SING page's key)
+spin K2 1
+expect shelf 1
+wait 100
+shot glo-shelf.png
+spin K2 -1
+expect shelf 0
+expect key 3
+tap GLO
+wait 100
+expect glo 0
+tap PLAY
+said STOP
+wait 100
+expect singing 0
+tap ENV
+expect sing 0

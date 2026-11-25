@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Shan-Sherif
+# The site on GitHub Pages, built and deployed on every push to main (Settings > Pages > Source: GitHub Actions):
+# the front page, the Studio with the emulator, the installer with the release package, the manual. The release is
+# app/fm1.toml's version (version = "X.Y.Z"): change it there to publish a new one. tools/make_site.py builds it all
+# here as on a Mac: the firmware with JieLi's toolchain (from JieLi's server, run natively: the runner is Linux x86-64)
+# and the AC79 SDK (from gitee), the emulator with Emscripten, and the Studio's dictionary, CHIMERA's copy of CMUdict
+# (at the commit the lab was checked against). The release's three files (the package, the firmware image and their
+# SHA-256) are kept as the run's artifact, to attach to a GitHub release.
+name: pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+env:
+  CHIMERA_COMMIT: e780f7dd1159e82bb1aed70f273b4b5b69cf74aa    # CHIMERA's repository: the dictionary's version
+  EMSDK_VERSION: 7.0.0                                         # Emscripten: as the Mac the releases were made on
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4                              # (fm1-base and felucca-bsp are plain folders: base/)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python's packages (the fonts, the screens)
+        run: |
+          # (the fonts' tabular figures: Pillow's raqm, which loads the system's FriBiDi)
+          sudo apt-get install -y -qq libfribidi0
+          python3 -m pip install Pillow fonttools
+          python3 -c "from PIL import features; assert features.check('raqm'), 'Pillow without raqm'"
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSDK_VERSION }}
+      - name: JieLi's toolchain (fm1-base's tools/get_toolchain.sh)
+        run: |
+          for try in 1 2 3; do
+            sh base/tools/get_toolchain.sh "$HOME/.jieli" && break
+            echo "the toolchain's download failed (try $try of 3)"; [ "$try" = 3 ] && exit 1; sleep 20
+          done
+      - name: The AC79 SDK (gitee)
+        run: |
+          # (gitee is far from GitHub's runners: a clone fails now and then; up to 4 tries, 30 s apart)
+          for try in 1 2 3 4; do
+            git clone -q --depth 1 --branch AC79NN_SDK_V1.2.1_2023-12-13 \
+                https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK.git "$HOME/fw-AC79_AIoT_SDK" && break
+            rm -rf "$HOME/fw-AC79_AIoT_SDK"
+            echo "the AC79 SDK's clone from gitee failed (try $try of 4)"; [ "$try" = 4 ] && exit 1; sleep 30
+          done
+      - name: CHIMERA's copy of CMUdict (the Studio's dictionary)
+        run: |
+          d=external/chimera-vocal-synth/public/data
+          mkdir -p "$d"
+          for f in cmudict.txt.gz CMUDICT-LICENSE.txt; do
+            curl -fsSL --retry 3 -o "$d/$f" \
+                "https://raw.githubusercontent.com/jamesondh/chimera-vocal-synth/$CHIMERA_COMMIT/public/data/$f"
+          done
+      - name: The site (tools/make_site.py, the release in app/fm1.toml)
+        run: |
+          export JIELI_TOOLCHAIN="$HOME/.jieli/toolchain"
+          VER=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' app/fm1.toml)
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          python3 tools/make_site.py "$VER"
+          find app/build/site -maxdepth 2 | sort
+      - name: The release's files (to attach to a GitHub release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fmb-vocal-${{ env.VER }}
+          path: app/build/release-${{ env.VER }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

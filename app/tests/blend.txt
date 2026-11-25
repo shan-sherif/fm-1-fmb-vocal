@@ -1,0 +1,81 @@
+# BLENDED (1.0.0's blend as a body of its own, from 1.1.0): ALGORITHM picks MALE, FEMALE, CHILD or BLENDED; SEL held,
+# PRESET turns BLENDED's gender (male -> female) and SELECT its age (adult -> child), switched when they rest. From a
+# body whole SEL + a knob goes to BLENDED from that body's place. BLENDED keeps its blend while ALGORITHM picks the
+# others, and a preset keeps it (through a reboot). SEL released after a turn keeps the page; SEL alone turns it.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/blend.txt app/build/host
+wait 400
+listen
+expect body 0
+expect bodysel 0
+expect bodyk 1000
+expect f0x 112
+# SEL held + PRESET from MALE: BLENDED, gender from male's 0 % to 50 %
+press SEL
+spin PRESET 10
+said GENDER
+release SEL
+expect page 0
+expect bodysel 3
+expect gender 50
+expect age 0
+wait 600
+expect bodyk 950
+expect f0x 152
+wav blend-half.wav
+peakreset
+tap PLAY
+wait 2500
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+shot blend-half.png
+# SEL held + SELECT: age 30 % (male 35, female 35, child 30)
+press SEL
+spin SELECT 6
+said AGE
+release SEL
+expect age 30
+wait 600
+expect bodyk 887
+# SEL alone still turns the page
+tap SEL
+expect page 1
+# ALGORITHM: CHILD whole (BLENDED's blend kept), back up to BLENDED: the blend again
+spin ALGO -1
+said CHILD
+wait 600
+expect bodysel 2
+expect bodyk 740
+expect gender 50
+expect age 30
+spin ALGO 1
+said BLENDED
+wait 600
+expect bodysel 3
+expect bodyk 887
+# from FEMALE, SEL + PRESET starts at female's place (gender 100 %, age 0): down to 80 %
+spin ALGO -2
+wait 600
+expect bodysel 1
+press SEL
+spin PRESET -4
+release SEL
+wait 600
+expect bodysel 3
+expect gender 80
+expect age 0
+expect bodyk 920
+# kept in the preset: MALE chosen after, SAVE, a reboot: MALE, and BLENDED still 80 %
+spin ALGO -3
+wait 600
+expect bodysel 0
+tap SAVE
+wait 100
+reboot
+wait 600
+expect bodysel 0
+expect gender 80
+spin ALGO 3
+wait 600
+expect bodysel 3
+expect bodyk 920

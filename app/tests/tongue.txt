@@ -1,0 +1,58 @@
+# TONGUE (1.0.0, ARP): CHIMERA's Play mode on the knobs. The tongue body placed (K1 forward, K2 height), the tip held
+# where K3-K4 put it; the keys play pitch with the breath, as VOWEL's; SEL steps TONGUE, SHAPE, MOUTH; FX goes to
+# VOWEL, ARP back to WORDS (the tip resting behind the teeth again).
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/tongue.txt app/build/host
+wait 400
+listen
+tap ARP
+said TONGUE
+wait 100
+expect vmode 2
+expect page 6
+expect tipheld 1
+expect tbx 290
+# the tongue forward, a held note
+spin K1 10
+wait 100
+expect tbx 340
+wav tongue-front.wav
+peakreset
+key 7 down
+wait 900
+shot tongue.png
+key 7 up
+wait 300
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# the tip up to the ridge while a note is held: it closes (the note goes quiet), down again: it opens
+spin K4 50
+key 7 down
+wait 700
+key 7 up
+wait 200
+spin K4 -50
+# SEL: TONGUE, SHAPE, MOUTH; SELECT turns its pages
+tap SEL
+expect page 1
+tap SEL
+expect page 2
+tap SEL
+expect page 6
+spin SELECT 1
+expect page 1
+# FX: VOWEL; ARP: TONGUE again; ARP: WORDS, the tip resting
+tap FX
+wait 100
+expect vmode 1
+expect page 5
+tap ARP
+wait 100
+expect vmode 2
+expect page 6
+tap ARP
+said WORDS
+wait 100
+expect vmode 0
+expect page 0
+expect tipheld 0

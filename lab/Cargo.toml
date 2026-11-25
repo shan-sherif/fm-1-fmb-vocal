@@ -1,0 +1,14 @@
+[package]
+name = "lab"
+description = "Test bench for porting CHIMERA (github.com/jamesondh/chimera-vocal-synth, MIT, Jameson Hodge) to the FM-1"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+chimera = { path = "../external/chimera-vocal-synth/crates/chimera" }
+flate2 = "1"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1

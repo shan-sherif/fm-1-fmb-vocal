@@ -1,0 +1,178 @@
+# The MELODY page (SEQ twice, FMB Vocal): your own melody, sung. SEQ opens the beatbox, SEQ again MELODY: melody 1
+# (14 notes over 32 steps) sings slot 1's words a syllable a note, its rests breaths; PRESET to an empty melody (PLAY:
+# no notes); EDIT, then a key writes its note and moves on, OCT+ a tie, OCT- a rest; sung (the melody again until
+# every syllable is); kept through a reboot; SEQ back and forth to the beatbox; HOME to the words; SING (ENV)
+# sings the melodies too, after its six tunes, an empty one passed over.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/melody.txt app/build/host
+wait 400
+listen
+tap SEQ
+said BEAT
+wait 200
+# (a beat changed and not saved: said on the way)
+spin K1 1
+tap SEQ
+said BEAT UNSAVED
+wait 200
+expect melody 1
+expect beat 0
+expect melslot 0
+expect melnotes 14
+# the words start again at the 11th note (10 syllables): step 21
+expect melwraps 1
+expect melwrap0 20
+shot melody.png
+# PLAY: slot 1 ("Hello there, I am a voice made of air.", 10 syllables) on its 14 notes (100 BPM: a step 0.3 s)
+wav melody-sing.wav
+peakreset
+tap PLAY
+said SINGING
+wait 300
+expect singing 1
+expect melsung 14
+expect melwrap0 20
+wait 900
+expect melnow >-1
+expect melat <5
+shot melody-singing.png
+# the rest at step 8 (2.1-2.4 s in): nothing sounding there
+wait 1100
+expect melat >5
+expect melat <9
+wait 2000
+expect melat >12
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+tap PLAY
+said STOP
+wait 300
+expect singing 0
+# PRESET: melody 3, empty
+spin PRESET 2
+said MELODY 3
+expect melslot 2
+expect melnotes 0
+tap PLAY
+said NO NOTES
+# EDIT: C4, a tie, E4, a rest
+tap EDIT
+said STEP EDIT
+expect meledit 1
+tapkey 7
+expect melstep0 60
+expect melcur 1
+tap OCT+
+expect melstep1 1
+tapkey 11
+expect melstep2 64
+tap OCT-
+expect melstep3 0
+expect melcur 4
+expect melnotes 2
+# 2 notes, 10 syllables: five times through, the words never start again
+expect melwraps 0
+shot melody-edit.png
+# G4 and A4 on: 4 notes, 10 syllables, three times through; the words start again on the 3rd note, the 3rd time
+tapkey 14
+tapkey 16
+expect melnotes 4
+expect melwraps 1
+expect melwrap0 4
+expect melwrappass0 2
+shot melody-wrap.png
+# sung fast (200 BPM: once through in 4.8 s): the line NEXT the 2nd time through, NOW the 3rd
+tap EDIT
+spin K1 100
+tap PLAY
+said SINGING
+wait 5500
+expect melpass 1
+shot melody-wrap-next.png
+wait 4600
+expect melpass 2
+shot melody-wrap-now.png
+tap PLAY
+wait 200
+spin K1 -100
+tap EDIT
+# the two cleared again (rests), the cursor home
+spin K3 -2
+tap OCT-
+tap OCT-
+expect melnotes 2
+spin K3 -6
+expect melcur 0
+tap EDIT
+said KEYS SING
+expect meledit 0
+# sung: 2 notes, 10 syllables, the melody five times
+tap PLAY
+said SINGING
+wait 300
+expect melsung 10
+tap PLAY
+wait 300
+# SAVE, a reboot: kept
+tap SAVE
+said SAVED
+reboot
+wait 400
+tap SEQ
+wait 200
+tap SEQ
+said MELODY 3
+expect melslot 2
+expect melstep0 60
+expect melstep1 1
+expect melstep2 64
+expect melnotes 2
+# SEQ: back to the beatbox; SEQ again: MELODY; HOME: the words
+tap SEQ
+said BEAT
+expect beat 1
+expect melody 0
+expect sing 0
+tap SEQ
+said MELODY 3
+expect melody 1
+expect beat 0
+# (a melody changed and not saved: said on the way to the beatbox)
+spin K1 1
+tap SEQ
+said MELODY UNSAVED
+expect beat 1
+tap SEQ
+tap HOME
+said WORDS
+expect melody 0
+expect sing 0
+expect beat 0
+# SING (ENV) sings the melodies too, after CHIMERA's six tunes: melody 1 on PRESET six on
+tap ENV
+said SING
+wait 200
+expect tune 0
+spin PRESET 6
+said MELODY 1
+expect tune 6
+tap PLAY
+said SINGING
+wait 300
+expect singing 1
+expect melsung 14
+wait 900
+expect melnow >-1
+shot sing-melody-singing.png
+tap PLAY
+wait 200
+# melodies 2 and 3 have notes, 4 none: passed over, both ways
+spin PRESET 3
+expect tune 0
+spin PRESET -1
+expect tune 8
+said MELODY 3
+shot sing-melody.png
+tap HOME
+said SING UNSAVED
+expect sing 0

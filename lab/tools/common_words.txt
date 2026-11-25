@@ -1,0 +1,43 @@
+# The firmware's built-in pronunciations (lab/tools/gen_dict.py -> engine/ch_dict_data.h): CHIMERA's function words,
+# the number words, and common English words (and words common in songs) whose spelling the letter-to-sound rules
+# misread. One or more words a line; '#' starts a comment.
+
+# CHIMERA's function words (english.rs FUNCTION_WORDS)
+a an the of to in on at by for from with as and or but nor so if is am are was were be been do does did has have had
+will would can could should shall may might must it its i you he she we they me him her us them my your his our their
+this that than then there not no
+
+# numbers (expand_numbers)
+zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen
+eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred thousand
+
+# common words
+about above across after again against all almost alone along already also always among another any anyone
+anything anyway around away back because become before began begin behind being believe below best better between
+both bring brought call came carry cause change child children come coming country course day days dear does done
+door down during each early earth easy either else end enough even ever every everyone everything eye eyes face
+family far father feel feet few find fire first floor fly follow food friend friends front full gave get girl give
+given go goes going gone good got great group grow guess hand hands happen happy hard head hear heard heart help
+here high hold home hope house how however idea important inside into just keep kind knew know known language last
+late later laugh learn least leave left less let life light like line listen little live long look love made make
+man many maybe mean men mind money more morning most mother move much music name near need never new next night
+nothing now number often oh okay old once only open other others out over own people person picture place play
+please point power put question quite rain rather really right river road room round run said same saw say school
+sea second see seem seen sense set several shall should show side since sing small some someone something sometimes
+song soon sound speak spring stand start still stop story street strong such sun sure take talk tell thing things
+think those though thought through time today together told tomorrow tonight too took toward true try turn under
+until up upon use very voice want warm watch water way well went what when where whether which while white who whole
+whose why wind window wish without woman women word words work world write wrong year years yes yesterday yet young
+yourself
+
+# songs
+ah angel baby beautiful bird blue body break breath burn cold cry dance dark dream dreams fall feeling forever free
+gold goodbye heaven hello hey kiss la lonely lord lose lost moon na oh ooh rose sky smile snow soul star stars
+stay summer sweet tears touch wait walk wild wonder yeah
+
+# homographs CHIMERA fixes by hand (english.rs homograph) need no entry; these are read as the dictionary has them
+said says again against been busy door floor ocean one once only other people pretty sugar sure their there were
+woman women
+
+# comparatives (asked for: "Harder, Better, Faster, Stronger"; the rules read "stronger" with a /g/ and the wrong vowel)
+harder better faster stronger longer younger older bigger higher lower louder softer closer

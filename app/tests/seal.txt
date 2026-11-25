@@ -1,0 +1,91 @@
+# The Bestiary's seal (0.7.0, LFO opens it, LFO again goes back to the human voice): a key held plays its pitch, PLAY its call (the trill), PRESET another
+# (the zap) played at a key's pitch with FX, SEL its second page, its settings kept through a reboot; the beatbox
+# refused; back to a human, the words again.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/seal.txt app/build/host
+wait 400
+listen
+tap LFO
+said BESTIARY
+wait 300
+# ALGORITHM two on: the seal (after the cat and the songbird)
+spin ALGO 2
+said SEAL
+wait 600
+expect body 3
+expect sealaudio 1
+shot seal.png
+# a key: C4 (key 7), an octave up (CHIMERA's creatureKeyHz: the octave that centres the seal's 40..6000 Hz on middle C)
+wav seal-key.wav
+peakreset
+key 7 down
+wait 900
+expect sealgate >90
+expect sealhz >515
+expect sealhz <530
+shot seal-key.png
+key 7 up
+wait 400
+expect sealgate <5
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# PLAY: the trill (3.9 s), falling from 3600 Hz
+wav seal-trill.wav
+peakreset
+tap PLAY
+wait 300
+expect sealcall 0
+expect sealhz >2000
+wait 3000
+expect sealhz <300
+wait 1200
+expect sealcall -1
+wavstop
+expect peak_db_min -30
+# PRESET: the zap, at a key's pitch with FX (A4, an octave over its own 6 kHz, held at the range's top)
+spin PRESET 1
+expect sealpick 1
+said ZAP
+press FX
+tapkey 11
+release FX
+wait 60
+expect sealcall 1
+wait 400
+expect sealcall -1
+# SEL: the second page; back, K1 the pulse rate (18 Hz, a semitone a detent up)
+tap SEL
+expect sealpage 1
+shot seal-page2.png
+tap SEL
+expect sealpage 0
+spin K1 12
+expect sealrate 360
+tap SAVE
+wait 100
+said SAVED
+reboot
+wait 600
+expect body 0
+tap LFO
+wait 600
+expect body 3
+expect sealrate 360
+expect sealpick 1
+# the beatbox wants a human
+tap SEQ
+expect beat 0
+said BEATBOX
+# ALGORITHM: another creature
+spin ALGO 1
+said CREATURE
+expect body 3
+# LFO: back to the human body ALGORITHM holds (the male), the words again
+tap LFO
+said HUMAN
+wait 600
+expect body 0
+expect sealaudio 0
+tap PLAY
+wait 1500
+said SPEAKING

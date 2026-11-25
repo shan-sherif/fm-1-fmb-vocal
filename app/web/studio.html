@@ -1,0 +1,650 @@
+<!-- SPDX-License-Identifier: MIT
+     Copyright (c) 2026 Shan-Sherif
+     The Studio: prepare the FM-1's word slots in the browser, with CMUdict's pronunciations, and send them over USB
+     (Web MIDI SysEx; the protocol is app/app.c's "words"). tools/make_site.py puts it in the site as studio/, with
+     the dictionary beside it and the firmware's built-in words in BUILTIN. -->
+<title>Studio · FMB Vocal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: dark;
+    /* FMB Vocal's theme, as the firmware's (app/app.c T_*): black and grey, white the one active thing */
+    --black: #000; --surf: #1a1a1a; --line: #2e2e2e; --dim: #606060; --mid: #9e9e9e; --hi: #d6d6d6; --fg: #fff;
+    --text: #e6e6e6;
+    --warn: #ffd23f; --err: #ff4d4d;   /* a warning yellow, an error red (the firmware's T_WARN, T_ERR) */
+  }
+  body { margin: 0; background: var(--black); color: var(--text); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1440px; margin: 0 auto; padding: 24px 16px 64px; }
+  .intro { max-width: 860px; }
+  .cols { display: grid; grid-template-columns: minmax(560px, 1.05fr) minmax(380px, 1fr); gap: 32px; align-items: start; }
+  .emu { position: sticky; top: 12px; }
+  .emu iframe { display: block; width: 100%; border: 0; height: 420px; background: var(--black); }
+  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } .emu { position: static; } }
+  .badge { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
+  .badge.on { color: var(--fg); } .badge.old { color: var(--warn); }
+  h1 { color: var(--fg); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 4px; font-size: 26px; }
+  h2 { color: var(--hi); font-weight: 600; letter-spacing: .06em; font-size: 15px; text-transform: uppercase; margin: 28px 0 8px; }
+  a { color: var(--hi); }
+  .site { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1.2rem; margin: 0 0 1.4rem; padding-bottom: .5rem; border-bottom: 1px solid var(--line); }
+  .site .home { color: var(--fg); font-weight: 600; letter-spacing: .1em; text-decoration: none; }
+  .site nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: .2rem 1rem; font-size: 14px; }
+  .site nav a { color: var(--mid); text-decoration-color: var(--dim); }
+  .site nav a[aria-current] { color: var(--fg); text-decoration: none; }
+  .credit { border-left: 3px solid var(--hi); padding: 4px 0 4px 12px; margin: 12px 0 20px; font-size: 14px; color: var(--text); }
+  .muted { color: var(--mid); font-size: 13px; }
+  button, select, input[type=file]::file-selector-button {
+    background: var(--black); color: var(--hi); border: 1px solid var(--mid); border-radius: 3px;
+    padding: 6px 12px; font: inherit; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  }
+  button:hover:not(:disabled), select:hover { border-color: var(--hi); color: var(--fg); }
+  button:disabled { color: var(--dim); border-color: var(--line); cursor: default; }
+  button.go { color: var(--black); background: var(--fg); border-color: var(--fg); }
+  button.go:hover:not(:disabled) { color: var(--black); background: var(--hi); }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #status { margin-top: 8px; min-height: 1.5em; }
+  .ok { color: var(--hi); } .warn { color: var(--warn); } .err { color: var(--err); }
+  .slot { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; margin: 10px 0; }
+  .slot header { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .slot .n { color: var(--hi); font-weight: 600; letter-spacing: .08em; }
+  .slot textarea {
+    width: 100%; box-sizing: border-box; margin-top: 8px; background: var(--black); color: var(--fg);
+    border: 1px solid var(--dim); border-radius: 3px; padding: 8px; font: inherit; font-size: 16px; resize: vertical; min-height: 2.6em;
+  }
+  .slot textarea:focus { outline: none; border-color: var(--hi); }
+  .syl { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .syl span { border: 1px solid var(--dim); border-radius: 3px; padding: 0 6px; font-size: 13px; color: var(--fg); }
+  .syl span.mel { color: var(--mid); }
+  .syl span.brk { border: none; color: var(--dim); padding: 0 2px; }
+  .words { margin-top: 6px; font-size: 13px; }
+  .words .w { display: inline-block; margin: 2px 10px 2px 0; }
+  .words .p { color: var(--mid); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  .words .unk { color: var(--warn); }
+  .fix { margin-top: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+  .fix input { background: var(--black); color: var(--fg); border: 1px solid var(--dim); border-radius: 3px; padding: 3px 6px; font: inherit; font-size: 13px; width: 16em; }
+  .meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .meter div { height: 100%; background: var(--hi); }
+  details summary { cursor: pointer; color: var(--hi); }
+  code { color: var(--fg); }
+</style>
+<main>
+  <header class="site"><a class="home" href="../">FMB Vocal</a><nav><a href="./" aria-current="page">Studio</a><a href="../install/">Install</a><a href="../manual/">Manual</a><a href="https://github.com/shan-sherif/fm-1-fmb-vocal">Source</a></nav></header>
+  <div class="intro">
+    <h1>Studio</h1>
+    <div class="muted" id="ver"></div>
+    <p class="credit"><strong>Voice engine based on <a href="https://github.com/jamesondh/chimera-vocal-synth">CHIMERA</a>
+      by Jameson Hodge</strong> (MIT licence). Pronunciations from the
+      <a href="https://github.com/cmusphinx/cmudict">CMU Pronouncing Dictionary</a> (Carnegie Mellon University, BSD
+      licence); random words from <a href="http://wordlist.aspell.net/">SCOWL</a> (Kevin Atkinson,
+      <a href="SCOWL-LICENSE.txt">its notice</a>). Unofficial: not affiliated with M-VAVE, and not endorsed by CHIMERA's author.</p>
+    <p>Write the words the FM-1 sings: up to eight lines, one per slot, each key the next syllable. Try them on the
+      emulated FM-1 (<strong>Play</strong> speaks a line; its keys then sing it), then send them to yours over USB.</p>
+  </div>
+  <div class="cols">
+    <section class="emu">
+      <h2>Emulated FM-1</h2>
+      <iframe id="emu" src="../emu/" title="The emulated FM-1: its screen, keys and knobs, and its sound"></iframe>
+      <div class="muted" id="emustate">Press START on the emulated FM-1 to hear it.</div>
+    </section>
+    <section>
+      <h2>Your FM-1</h2>
+      <div class="bar">
+        <button id="connect" class="go">Connect</button>
+        <button id="sendall" disabled>Update all slots</button>
+        <button id="read" disabled>Read from FM-1</button>
+      </div>
+      <div id="status" class="muted">Chrome or Edge, the FM-1 on USB with FMB Vocal installed. Connecting loads its slots here.</div>
+
+      <h2>Slots</h2>
+      <div class="bar">
+        <select id="bank"><option value="">Load a line into the first empty slot…</option></select>
+        <button id="presets">Presets</button>
+        <button id="save">Save file</button>
+        <label><input type="file" id="load" accept=".txt,text/plain" hidden><button id="loadbtn" type="button">Load file</button></label>
+      </div>
+      <div class="muted" id="dictstate">Loading the dictionary…</div>
+      <div class="muted" id="budget"></div>
+      <div class="meter"><div id="meter" style="width:0"></div></div>
+      <div id="slots"></div>
+
+      <details>
+        <summary>Words the dictionary does not know</summary>
+        <p>A name or a made-up word is read by spelling rules on the FM-1, which can get it wrong. Say how it sounds with
+          words the dictionary knows (<code>sheh vawn</code> for Siobhan), or in ARPAbet (<code>SH AH0 V AO1 N</code>),
+          in the box under it. A hyphen in the words splits syllables where you want (<code>ti-ger</code>); a lone
+          <code>-</code> holds the vowel onto the next key.</p>
+      </details>
+    </section>
+  </div>
+</main>
+<script>
+
+"use strict";
+const BUILTIN = /*BUILTIN*/{}/*END*/;          // the firmware's built-in pronunciations (ch_dict_data.h)
+const VERSION = /*VERSION*/"dev"/*END*/;
+const SLOTS = 8, MAX_TEXT = 120, DOC_MAX = 3840, CHUNK = 480;
+// the FM-1 reads these homographs its own way (CHIMERA's english.rs), whatever is sent
+const HOMOGRAPH = { wind: "W IH1 N D", read: "R IY1 D", live: "L IH1 V", lead: "L IY1 D", close: "K L OW1 Z", wound: "W UW1 N D" };
+const PHONES = new Set("AA AE AH AO AW AY B CH D DH EH ER EY F G HH IH IY JH K L M N NG OW OY P R S SH T TH UH UW V W Y Z ZH".split(" "));
+const VOWELS = new Set("AA AE AH AO AW AY EH ER EY IH IY OW OY UH UW".split(" "));
+// CHIMERA's English presets (its Sing mode's default lyric, its demo song "Made of air", Twinkle, its Speak panel's
+// examples): the slots to start from, as the FM-1 has them before anything is sent (lab/tools/gen_words_default.py)
+const PRESETS = [
+  "Hello there, I am a voice made of air.",
+  "Breathe in, breathe out, I am made of air.",
+  "Tongue and lips and throat, singing anywhere.",
+  "Twinkle twinkle little star, how I wonder what you are.",
+  "Hello. Can you hear me?",
+  "She sells sea shells by the sea shore.",
+  "Every sound here is air moving through a throat.",
+  "The quick brown fox jumps over the lazy dog.",
+];
+// more lines to load into an empty slot: public domain or plain words only
+const BANKS = [
+  ...PRESETS.map((t) => ["Preset: " + t, t]),
+  ["Row your boat (1852)", "Row, row, row your boat, gently down the stream."],
+  ["Mary had a little lamb (1830)", "Mary had a little lamb, its fleece was white as snow."],
+  ["London Bridge (traditional)", "London Bridge is falling down, falling down, falling down."],
+  ["Counting", "One, two, three, four, five, six, seven, eight."],
+  ["Solfege", "Do re mi fa so la ti do"],
+  ["Vowels", "Ah eh ee oh oo"],
+];
+
+let dict = null;                 // CMUdict: word -> ARPAbet
+const slots = Array.from({ length: SLOTS }, () => ({ text: "", fixes: {} }));
+PRESETS.forEach((t, i) => { slots[i].text = t; });
+
+const $ = (id) => document.getElementById(id);
+$("ver").textContent = "FMB Vocal " + VERSION;
+function status(msg, cls = "muted") { const s = $("status"); s.textContent = msg; s.className = cls; }
+
+// ---------------------------------------------------------------- the dictionary
+(async () => {
+  try {
+    const r = await fetch("cmudict.txt.gz");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const buf = new Uint8Array(await r.arrayBuffer());
+    // gzip as stored; a server that sends it Content-Encoding: gzip has the browser unzip it already
+    const text = buf[0] === 0x1f && buf[1] === 0x8b
+      ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
+      : new TextDecoder().decode(buf);
+    dict = new Map();
+    for (const line of text.split("\n")) {
+      const t = line.indexOf("\t");
+      if (t > 0) dict.set(line.slice(0, t), line.slice(t + 1));
+    }
+    $("dictstate").textContent = dict.size.toLocaleString() + " words in the dictionary";
+  } catch (e) {
+    $("dictstate").textContent = "The dictionary did not load: words go by the FM-1's rules.";
+    $("dictstate").className = "warn";
+  }
+  render();
+})();
+
+// ---------------------------------------------------------------- random words
+// a line of 3 to 6 random words: everyday English words (SCOWL's most common, each with a CMUdict pronunciation:
+// random_words.txt, lab/tools/gen_random_words.py), or the FM-1's own built-in words until that has loaded
+let randomWords = null;
+(async () => {
+  try {
+    const r = await fetch("random_words.txt");
+    if (r.ok) randomWords = (await r.text()).split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+  } catch { /* the built-in words, then */ }
+})();
+function randomLine() {
+  const pool = randomWords && randomWords.length ? randomWords : Object.keys(BUILTIN);
+  const n = 3 + Math.floor(Math.random() * 4), out = [];
+  while (out.length < n && out.length < pool.length) {
+    const w = pool[Math.floor(Math.random() * pool.length)];
+    if (!out.includes(w)) out.push(w);
+  }
+  return out.join(" ").slice(0, MAX_TEXT);
+}
+
+// ---------------------------------------------------------------- words, as the FM-1 reads them
+/** the words of a line as the FM-1's lyrics reader splits them: [{tok, parts}], or {mel: true} for a lone - or ~ */
+function tokens(text) {
+  const out = [];
+  const re = /[A-Za-z'][A-Za-z'\-]*|(?<=\s|^)[~-](?=\s|$)|[.,;:!?]/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const t = m[0];
+    if (t === "-" || t === "~") out.push({ mel: true });
+    else if (/^[.,;:!?]$/.test(t)) out.push({ brk: t });
+    else out.push({ tok: t, parts: t.split("-").filter(Boolean) });
+  }
+  return out;
+}
+const clean = (w) => w.toLowerCase().replace(/^'+|'+$/g, "");
+function isArpa(s) { const ph = s.trim().split(/\s+/); return ph.length > 0 && ph.every((p) => PHONES.has(p.replace(/[012]$/, ""))); }
+/** a "sounds like" answer: ARPAbet, or words the dictionary knows (null: a part it does not) */
+function resolveFix(s) {
+  s = s.trim();
+  if (!s) return null;
+  if (/[A-Z]/.test(s) && isArpa(s)) return s.trim().split(/\s+/).join(" ");
+  const out = [];
+  for (const part of s.toLowerCase().split(/[\s-]+/).filter(Boolean)) {
+    const e = (dict && dict.get(part)) || BUILTIN[part];
+    if (!e) return null;
+    out.push(e);
+  }
+  return out.join(" ");
+}
+/** a word's pronunciation as the FM-1 will have it: {arpa, from: homograph | yours | dictionary | built-in | rules} */
+function pron(w, fixes) {
+  const c = clean(w);
+  if (HOMOGRAPH[c]) return { arpa: HOMOGRAPH[c], from: "homograph" };
+  if (fixes[c]) { const f = resolveFix(fixes[c]); if (f) return { arpa: f, from: "yours" }; }
+  const d = dict && dict.get(c);
+  if (d) return { arpa: d, from: "dictionary" };
+  if (BUILTIN[c]) return { arpa: BUILTIN[c], from: "built-in" };
+  return { arpa: null, from: "rules" };
+}
+const vowelCount = (arpa) => arpa.split(/\s+/).filter((p) => VOWELS.has(p.replace(/[012]$/, ""))).length;
+
+/** a written word split into n chunks at its vowel groups (CHIMERA's split_spelling) */
+function splitSpelling(word, n) {
+  if (n <= 1) return [word];
+  const lower = word.toLowerCase(), groups = [];
+  const re = /[aeiouy]+/g;
+  let m;
+  while ((m = re.exec(lower))) groups.push([m.index, m.index + m[0].length]);
+  const len = word.length;
+  const silentE = /[^aeiouy]e$/i.test(word), le = /[^aeiouyl]le$/i.test(word);
+  if (groups.length > 1 && silentE && !le && groups[groups.length - 1][0] + 1 === len) groups.pop();
+  if (groups.length < n) return [word, ...Array(n - 1).fill("~")];
+  while (groups.length > n) { const last = groups.pop(); groups[groups.length - 1][1] = last[1]; }
+  const cuts = [0];
+  for (let i = 0; i < groups.length - 1; i++) {
+    const a = groups[i][1], b = groups[i + 1][0], gap = b - a;
+    const dig = gap >= 2 && /^(th|sh|ch|ph|wh|ck|gh)$/i.test(word.slice(b - 2, b));
+    cuts.push(dig ? b - 2 : a + (gap <= 1 ? 0 : Math.floor(gap / 2)));
+  }
+  cuts.push(len);
+  return cuts.slice(0, -1).map((c, i) => word.slice(c, cuts[i + 1]));
+}
+
+/** a line's syllables (what each key sings) and its words' pronunciations */
+function analyse(slot) {
+  const syl = [], words = [];
+  for (const t of tokens(slot.text)) {
+    if (t.mel) { syl.push({ text: "~", mel: true }); continue; }
+    if (t.brk) { syl.push({ brk: t.brk }); continue; }
+    for (const part of t.parts) {
+      const p = pron(part, slot.fixes);
+      words.push({ w: part, ...p });
+      // the rules' count is a guess (the FM-1's own rules decide): the written vowel groups
+      const n = p.arpa ? vowelCount(p.arpa) : Math.max(1, (part.toLowerCase().match(/[aeiouy]+/g) || []).length);
+      const spell = t.parts.length > 1 ? [part, ...Array(Math.max(0, n - 1)).fill("~")] : splitSpelling(part, n);
+      for (let i = 0; i < n; i++) syl.push({ text: spell[i] || "~", unk: !p.arpa });
+    }
+  }
+  return { syl, words };
+}
+
+// ---------------------------------------------------------------- the document the FM-1 keeps
+function ascii(s) {
+  return s.replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/[\u2013\u2014]/g, "-")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7e]/g, "").replace(/\s+/g, " ").trim();
+}
+function documentText(list = slots) {
+  let doc = "VOCALWORDS 1\n";
+  const send = new Map();
+  list.forEach((s, i) => {
+    const t = ascii(s.text).slice(0, MAX_TEXT);
+    if (!t) return;
+    doc += `${i + 1} ${t}\n`;
+    for (const tk of tokens(t)) {
+      if (!tk.parts) continue;
+      const whole = clean(tk.tok);
+      const list = tk.parts.length > 1 && dict && dict.get(whole) ? [tk.tok, ...tk.parts] : tk.parts;
+      for (const part of list) {
+        const c = clean(part), p = pron(part, s.fixes);
+        if (!p.arpa || p.from === "homograph" || p.from === "built-in") continue;
+        if (p.from === "dictionary" && BUILTIN[c] === p.arpa) continue;   // the FM-1 has it already
+        send.set(c, p.arpa);
+      }
+    }
+  });
+  for (const [w, a] of send) doc += `@${w} ${a}\n`;
+  return doc;
+}
+
+// ---------------------------------------------------------------- the page
+const clone = (list) => list.map((s) => ({ text: s.text, fixes: { ...s.fixes } }));
+const same = (a, b) => ascii(a.text) === ascii(b.text) && JSON.stringify(a.fixes) === JSON.stringify(b.fixes);
+let deviceSlots = null;          // what the FM-1 on USB holds, as last read or sent (null: not connected)
+
+function render() {
+  const box = $("slots");
+  box.textContent = "";
+  slots.forEach((s, i) => {
+    const el = document.createElement("section");
+    el.className = "slot";
+    const head = document.createElement("header");
+    const left = document.createElement("span");
+    left.className = "bar";
+    const n = document.createElement("span");
+    n.className = "n";
+    n.textContent = "SLOT " + (i + 1);
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    left.append(n, badge);
+    const play = document.createElement("button");
+    play.textContent = "Play";
+    play.className = "go";
+    play.title = "Speak this line on the emulated FM-1; its keys then sing it";
+    play.onclick = () => playSlot(i);
+    const send = document.createElement("button");
+    send.textContent = "Send to FM-1";
+    send.title = "Put this line in this slot on your FM-1 (its other slots stay as they are)";
+    send.onclick = () => sendSlot(i);
+    const rnd = document.createElement("button");
+    rnd.textContent = "Random";
+    rnd.title = "Fill this slot with random words from the dictionary (as ARP does in the FM-1's word editor, with its own words)";
+    rnd.onclick = () => { s.text = randomLine(); s.fixes = {}; render(); };
+    const clear = document.createElement("button");
+    clear.textContent = "Clear";
+    clear.onclick = () => { s.text = ""; s.fixes = {}; render(); };
+    const btns = document.createElement("span");
+    btns.className = "bar";
+    btns.append(play, send, rnd, clear);
+    head.append(left, btns);
+    const ta = document.createElement("textarea");
+    ta.maxLength = MAX_TEXT;
+    ta.rows = 1;
+    ta.placeholder = "Words to sing…";
+    ta.value = s.text;
+    ta.oninput = () => { s.text = ta.value; update(); };
+    const sylEl = document.createElement("div"), wordsEl = document.createElement("div"), fixEl = document.createElement("div");
+    sylEl.className = "syl";
+    wordsEl.className = "words";
+    el.append(head, ta, sylEl, wordsEl, fixEl);
+    box.append(el);
+    function update() {
+      const a = analyse(s);
+      sylEl.textContent = "";
+      let keys = 0;
+      for (const y of a.syl) {
+        const sp = document.createElement("span");
+        if (y.brk) { sp.className = "brk"; sp.textContent = y.brk; }
+        else { keys++; sp.textContent = y.text; if (y.mel) sp.className = "mel"; if (y.unk) sp.style.borderColor = "var(--warn)"; }
+        sylEl.append(sp);
+      }
+      wordsEl.textContent = "";
+      fixEl.textContent = "";
+      if (s.text.trim()) {
+        const k = document.createElement("span");
+        k.className = "muted";
+        k.textContent = keys + (keys === 1 ? " key · " : " keys · ");
+        wordsEl.append(k);
+      }
+      const seen = new Set();
+      for (const w of a.words) {
+        const c = clean(w.w);
+        if (seen.has(c)) continue;
+        seen.add(c);
+        const sp = document.createElement("span");
+        sp.className = "w";
+        const name = document.createElement("span");
+        name.textContent = c + " ";
+        const p = document.createElement("span");
+        p.className = w.arpa ? "p" : "p unk";
+        p.textContent = w.arpa ? w.arpa + (w.from === "yours" ? " (yours)" : w.from === "homograph" ? " (fixed)" : "") : "not in the dictionary";
+        sp.append(name, p);
+        wordsEl.append(sp);
+        if (!w.arpa || w.from === "yours") {
+          const row = document.createElement("label");
+          row.className = "fix";
+          row.append(`“${c}” sounds like `);
+          const inp = document.createElement("input");
+          inp.value = s.fixes[c] || "";
+          inp.placeholder = "words it sounds like, or ARPAbet";
+          inp.onchange = () => { s.fixes[c] = inp.value; update(); };
+          row.append(inp);
+          if (s.fixes[c] && !resolveFix(s.fixes[c])) {
+            const e = document.createElement("span");
+            e.className = "warn";
+            e.textContent = "a part of it is not in the dictionary";
+            row.append(e);
+          }
+          fixEl.append(row);
+        }
+      }
+      play.disabled = !s.text.trim();
+      send.disabled = !dev || !deviceSlots;
+      if (!deviceSlots) { badge.textContent = ""; badge.className = "badge"; }
+      else if (same(s, deviceSlots[i])) { badge.textContent = s.text.trim() ? "on FM-1" : ""; badge.className = "badge on"; }
+      else { badge.textContent = "not on FM-1 yet"; badge.className = "badge old"; }
+      budget();
+    }
+    update();
+  });
+  budget();
+}
+function budget() {
+  const n = documentText().length;
+  $("budget").textContent = `${n.toLocaleString()} of ${DOC_MAX.toLocaleString()} bytes on the FM-1`;
+  $("budget").className = n > DOC_MAX ? "err" : "muted";
+  $("meter").style.width = Math.min(100, (100 * n) / DOC_MAX) + "%";
+  $("meter").style.background = n > DOC_MAX ? "var(--err)" : "var(--hi)";
+  $("sendall").disabled = !dev || n > DOC_MAX;
+}
+
+for (const [name, text] of BANKS) {
+  const o = document.createElement("option");
+  o.value = text;
+  o.textContent = name;
+  $("bank").append(o);
+}
+$("presets").onclick = () => {
+  slots.forEach((s, i) => { s.text = PRESETS[i] || ""; s.fixes = {}; });
+  status("The slots hold the presets again: clear the lines you do not want.", "muted");
+  render();
+};
+$("bank").onchange = () => {
+  const t = $("bank").value;
+  $("bank").value = "";
+  if (!t) return;
+  const i = slots.findIndex((s) => !s.text.trim());
+  if (i < 0) { status("Every slot has words: clear one first.", "warn"); return; }
+  slots[i].text = t;
+  render();
+};
+
+// a file: the document itself, plus the "sounds like" answers as comments the FM-1 never sees
+$("save").onclick = () => {
+  let fix = "";
+  slots.forEach((s, i) => { for (const [w, v] of Object.entries(s.fixes)) if (v) fix += `# fix ${i + 1} ${w} ${v}\n`; });
+  const blob = new Blob([fix + documentText()], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "vocal-words.txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$("loadbtn").onclick = () => $("load").click();
+$("load").onchange = async () => {
+  const f = $("load").files[0];
+  if (!f) return;
+  parseDocument(await f.text()).forEach((s, i) => { slots[i] = s; });
+  $("load").value = "";
+  render();
+};
+/** a document (the FM-1's, or a file) as slots */
+function parseDocument(text) {
+  const out = Array.from({ length: SLOTS }, () => ({ text: "", fixes: {} }));
+  const own = new Map();
+  for (const line of text.split("\n")) {
+    let m;
+    if ((m = /^# fix (\d) (\S+) (.+)$/.exec(line))) { const s = out[+m[1] - 1]; if (s) s.fixes[m[2]] = m[3]; }
+    else if ((m = /^([1-8]) (.*)$/.exec(line))) out[+m[1] - 1].text = m[2];
+    else if ((m = /^@(\S+) (.+)$/.exec(line))) own.set(m[1], m[2]);
+  }
+  // a pronunciation that is not the dictionary's: the user's, kept as ARPAbet
+  for (const [w, a] of own) {
+    if (dict && dict.get(w) === a) continue;
+    for (const s of out) if (tokens(s.text).some((t) => t.parts && t.parts.some((p) => clean(p) === w)) && !s.fixes[w]) s.fixes[w] = a;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- the link: the FM-1's words over MIDI SysEx
+const HEAD = [0xf0, 0x7d, 0x56, 0x4f];
+const num = (v, n) => Array.from({ length: n }, (_, i) => (v >> (7 * (n - 1 - i))) & 0x7f);
+const unnum = (b) => b.reduce((v, x) => (v << 7) | x, 0);
+const STATUS = ["", "out of order", "the check failed", "not a words document", "the FM-1 could not save it"];
+/** one FM-1 (yours over USB, or the emulated one): the protocol of app/app.c's "words" */
+function link(input, output) {
+  let waiter = null;
+  input.onmidimessage = (ev) => {
+    const d = Array.from(ev.data);
+    if (d[0] === 0xf0 && d[1] === 0x7d && d[2] === 0x56 && d[3] === 0x4f && waiter) waiter(d.slice(4, -1));
+  };
+  const L = {
+    name: output.name,
+    sx(cmd, payload = []) { output.send([...HEAD, cmd, ...payload, 0xf7]); },
+    reply(match, ms = 3000) {
+      return new Promise((ok, no) => {
+        const t = setTimeout(() => { waiter = null; no(new Error("the FM-1 did not answer")); }, ms);
+        waiter = (d) => { if (match(d)) { clearTimeout(t); waiter = null; ok(d); } };
+      });
+    },
+    async ack(cmd, payload) {
+      L.sx(cmd, payload);
+      const d = await L.reply((r) => r[0] === 0x7f && r[1] === cmd);
+      if (d[2] !== 0) throw new Error(STATUS[d[2]] || "status " + d[2]);
+    },
+    async hello() {
+      L.sx(0x01);
+      const d = await L.reply((r) => r[0] === 0x01);
+      return { version: String.fromCharCode(...d.slice(8)), length: unnum(d.slice(5, 8)) };
+    },
+    async read() {
+      const { length } = await L.hello();
+      let text = "";
+      for (let off = 0; off < length; off += 480) {
+        L.sx(0x05, [...num(off, 3), ...num(480, 2)]);
+        const d = await L.reply((r) => r[0] === 0x05 && unnum(r.slice(1, 4)) === off);
+        text += String.fromCharCode(...d.slice(4));
+      }
+      return text;
+    },
+    async send(text, progress) {
+      const doc = new TextEncoder().encode(text);
+      await L.ack(0x02, num(doc.length, 3));
+      for (let off = 0; off < doc.length; off += CHUNK) {
+        if (progress) progress(off / doc.length);
+        await L.ack(0x03, [...num(off, 3), ...doc.slice(off, off + CHUNK)]);
+      }
+      await L.ack(0x04, num(doc.reduce((a, b) => a + b, 0) & 0x1fffff, 3));
+    },
+  };
+  return L;
+}
+
+// your FM-1, over USB
+let dev = null;
+$("connect").onclick = async () => {
+  try {
+    const access = await navigator.requestMIDIAccess({ sysex: true });
+    const pick = (ports) => [...ports.values()].find((p) => /fmb|vocal|fm-1/i.test(p.name) && !/emulator/i.test(p.name)) || null;
+    const inp = pick(access.inputs), out = pick(access.outputs);
+    if (!inp || !out) { status("No FM-1 found: is it on USB, with FMB Vocal installed?", "warn"); return; }
+    dev = link(inp, out);
+    const h = await dev.hello();
+    deviceSlots = parseDocument(await dev.read());
+    deviceSlots.forEach((s, i) => { slots[i] = { text: s.text, fixes: { ...s.fixes } }; });
+    $("read").disabled = false;
+    status(`Connected: FMB Vocal ${h.version}. The slots show the words it holds.`, "ok");
+    render();
+  } catch (e) {
+    dev = null;
+    status(String(e.message || e), "err");
+  }
+};
+$("read").onclick = async () => {
+  try {
+    deviceSlots = parseDocument(await dev.read());
+    deviceSlots.forEach((s, i) => { slots[i] = { text: s.text, fixes: { ...s.fixes } }; });
+    status("Read the FM-1's words.", "ok");
+    render();
+  } catch (e) {
+    status("Not read: " + (e.message || e), "err");
+  }
+};
+async function sendDevice(list, what) {
+  const text = documentText(list);
+  if (text.length > DOC_MAX) { status("Too many words for the FM-1: shorten a line.", "err"); return false; }
+  try {
+    await dev.send(text, (f) => status(`Sending ${what}… ${Math.round(100 * f)} %`));
+    deviceSlots = clone(list);
+    status(`Sent ${what} and saved on the FM-1.`, "ok");
+    return true;
+  } catch (e) {
+    status("Not sent: " + (e.message || e), "err");
+    return false;
+  } finally {
+    render();
+  }
+}
+$("sendall").onclick = () => sendDevice(clone(slots), "every slot");
+async function sendSlot(i) {
+  if (!dev || !deviceSlots) { status("Connect your FM-1 first.", "warn"); return; }
+  const list = clone(deviceSlots);
+  list[i] = { text: slots[i].text, fixes: { ...slots[i].fixes } };
+  if (await sendDevice(list, `slot ${i + 1}`)) {
+    try { await dev.ack(0x06, [i]); } catch { /* an emptied slot: nothing to sing */ }
+  }
+}
+
+// the emulated FM-1: its port (emu/parts/port_client.js), the same protocol
+let emu = null, emuText = "";
+(async () => {
+  try {
+    const { emuAccess } = await import("../emu/parts/port_client.js");
+    const access = emuAccess();
+    const find = () => {
+      const out = [...access.outputs.values()].find((p) => p.state === "connected");
+      const inp = out && [...access.inputs.values()].find((p) => p.state === "connected" && p.name === out.name);
+      if (out && inp) {
+        if (!emu || emu.name !== out.name) { emu = link(inp, out); emuText = ""; }
+        $("emustate").textContent = "The emulated FM-1 is running: Play a slot, or play its keys.";
+        $("emustate").className = "ok";
+      } else {
+        emu = null;
+        $("emustate").textContent = "Press START on the emulated FM-1 to hear it.";
+        $("emustate").className = "muted";
+      }
+    };
+    access.addEventListener("statechange", find);
+    find();
+  } catch (e) {
+    $("emustate").textContent = "No emulator on this site.";
+  }
+})();
+async function playSlot(i) {
+  if (!emu) { status("Press START on the emulated FM-1 first, then Play.", "warn"); return; }
+  try {
+    const text = documentText();
+    if (text.length > DOC_MAX) { status("Too many words for the FM-1: shorten a line.", "err"); return; }
+    if (text !== emuText) { await emu.send(text); emuText = text; }
+    await emu.ack(0x07, [i]);
+    status(`The emulated FM-1 speaks slot ${i + 1}; its keys now sing it.`, "ok");
+  } catch (e) {
+    status("The emulator: " + (e.message || e), "err");
+  }
+}
+// the emulator in the page: its own header and help hidden, its height as tall as its panel
+$("emu").addEventListener("load", () => {
+  const f = $("emu"), d = f.contentDocument;
+  if (!d) return;
+  const st = d.createElement("style");
+  st.textContent = "body { padding: 0 !important; } body > header, .help, .speak, .turn, h1, .credit { display: none !important; } main { max-width: none !important; }";
+  d.head.append(st);
+  const fit = () => { f.style.height = d.documentElement.scrollHeight + "px"; };
+  new ResizeObserver(fit).observe(d.body);
+  fit();
+});
+
+render();
+</script>

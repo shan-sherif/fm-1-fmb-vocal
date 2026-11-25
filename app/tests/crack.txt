@@ -1,0 +1,57 @@
+# No crack where a nasal ends a word (from 0.6.0): "same mom" spoken in each body stays under the output's limiter
+# (the female and the child, higher, peak a little louder).
+# Before 0.6.0 three steps in the waveguide each made a one-sample spike as the lips closed into a final /m/ or opened
+# from it, loud enough to reach the limiter (-14.6 dBFS here): the velum port's junction and the lips' jet loss set at
+# a control step instead of ramped, and the nose's junction moving a section at every half.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/crack.txt app/build/host
+wait 400
+tap EDIT
+wait 50
+press OCT-
+wait 3300
+release OCT-
+# "same mom": s a m e, the top key a space, m o m
+tapkey 18
+tapkey 0
+tapkey 12
+tapkey 4
+tapkey 26
+tapkey 12
+tapkey 14
+tapkey 12
+wait 50
+expect edlen 8
+# SAVE: kept in the slot, the editor left (ALGORITHM picks the body only outside it); PLAY speaks the slot
+tap SAVE
+wait 400
+expect edit 0
+# MALE
+wav crack-male.wav
+peakreset
+tap PLAY
+wait 2500
+wavstop
+expect peak_db_max -15.5
+expect peak_db_min -30
+# FEMALE
+spin ALGO 1
+wait 600
+expect body 1
+wav crack-female.wav
+peakreset
+tap PLAY
+wait 2500
+wavstop
+expect peak_db_max -15.5
+expect peak_db_min -30
+# CHILD
+spin ALGO 1
+wait 600
+expect body 2
+wav crack-child.wav
+peakreset
+tap PLAY
+wait 2500
+wavstop
+expect peak_db_max -15.5
+expect peak_db_min -30

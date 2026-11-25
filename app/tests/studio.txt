@@ -1,0 +1,48 @@
+# The Studio's sync in the simulator: hello, a words document in two chunks, its commit (saved, slot 1 sung), a
+# slot change, reading it back, a bad sum refused.
+#   app/build/host/fmb-vocal_host app/tests/studio.txt app/build/host
+wait 200
+sysex_out
+sysex F0 7D 56 4F 01 F7
+sysex_out
+sysex F0 7D 56 4F 02 00 00 5F F7
+expect_sysex F0 7D 56 4F 7F 02 00 F7
+sysex F0 7D 56 4F 03 00 00 00 56 4F 43 41 4C 57 4F 52 44 53 20 31 0A 31 20 48 65 6C 6C 6F 20 43 68 69 6D 65 72 61 2C 20 73 69 6E 67 20 66 6F 72 20 6D 65 0A 32 20 44 6F 20 F7
+expect_sysex F0 7D 56 4F 7F 03 00 F7
+sysex F0 7D 56 4F 03 00 00 2F 72 65 20 6D 69 20 66 61 20 73 6F 20 6C 61 20 74 69 20 64 6F 0A 40 63 68 69 6D 65 72 61 20 4B 20 41 59 30 20 4D 20 49 48 31 20 52 20 41 48 30 0A F7
+expect_sysex F0 7D 56 4F 7F 03 00 F7
+sysex F0 7D 56 4F 04 00 37 31 F7
+expect_sysex F0 7D 56 4F 7F 04 00 F7
+wait 300
+shot studio1.png
+wav studio.wav
+key 7 down
+wait 400
+key 7 up
+key 9 down
+wait 400
+key 9 up
+wait 300
+sysex F0 7D 56 4F 06 01 F7
+expect_sysex F0 7D 56 4F 7F 06 00 F7
+wait 100
+shot studio2.png
+key 7 down
+wait 300
+key 7 up
+wait 400
+wavstop
+sysex F0 7D 56 4F 05 00 00 00 00 28 F7
+sysex_out
+sysex F0 7D 56 4F 02 00 00 04 F7
+expect_sysex F0 7D 56 4F 7F 02 00 F7
+sysex F0 7D 56 4F 03 00 00 00 56 4F 43 41 F7
+expect_sysex F0 7D 56 4F 7F 03 00 F7
+sysex F0 7D 56 4F 04 00 00 01 F7
+expect_sysex F0 7D 56 4F 7F 04 02 F7
+sysex F0 7D 56 4F 06 07 F7
+expect_sysex F0 7D 56 4F 7F 06 01 F7
+sysex F0 7D 56 4F 07 01 F7
+expect_sysex F0 7D 56 4F 7F 07 00 F7
+wait 1500
+shot studio3.png

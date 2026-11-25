@@ -1,0 +1,13 @@
+{
+  "what": "A variation of Jameson Hodge's Chimera for the FM-1, a voice engine that simulates airway (lungs, vocal folds, throat, mouth, nose) sings words a syllable per key, or holds vowels you shape with the knobs. Write the words in the browser Studio and send them over USB.",
+  "author": "Shan-Sherif",
+  "kinds": [
+    "synth"
+  ],
+  "play": "https://shan-sherif.github.io/fm-1-fmb-vocal/studio/",
+  "editor": "https://shan-sherif.github.io/fm-1-fmb-vocal/studio/",
+  "cheat": "https://shan-sherif.github.io/fm-1-fmb-vocal/manual/",
+  "image": "app/site/img/fmhub-square.png",
+  "color": "#9E9E9E",
+  "sounds": "none"
+}

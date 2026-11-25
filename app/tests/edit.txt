@@ -1,0 +1,188 @@
+# The word editor in the simulator (from 0.5.0): SEL steps the knob pages (EDIT did until then); EDIT opens the editor
+# on the slot sung, the keys type (A..Z bottom up, the top key a space), K1 moves, K2 changes, OCT- / OCT+ delete, PLAY
+# tries, SAVE keeps (through a reboot), EDIT / HOME leave (unsaved: twice), PRESET picks another slot, FX switches the
+# keys between A-Z and QWERTY in two rows.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/edit.txt app/build/host
+wait 400
+listen
+# SEL: the pages (2-5), HOME: page 1
+tap SEL
+expect page 1
+said SHAPE
+tap SEL
+expect page 2
+tap HOME
+expect page 0
+# EDIT: slot 1, "Hello there, I am a voice made of air." (38), the cursor at its end
+tap EDIT
+wait 50
+expect edit 1
+expect edlen 38
+expect edcur 38
+said EDIT
+shot edit-open.png
+# OCT- held: all of it deleted
+press OCT-
+wait 3300
+release OCT-
+expect edlen 0
+expect edcur 0
+# "hi yo": h i (7, 8), the top key a space (26), y o (24, 14)
+tapkey 7
+tapkey 8
+tapkey 26
+tapkey 24
+tapkey 14
+wait 50
+expect edlen 5
+expect edcur 5
+# K1 back one, OCT+ deletes the o after the cursor, then o again
+spin K1 -1
+expect edcur 4
+tap OCT+
+expect edlen 4
+tapkey 14
+expect edlen 5
+# K2: the o through the characters to a comma and back
+spin K2 13
+spin K2 -13
+expect edlen 5
+shot edit-typed.png
+# PLAY: tried as typed
+tap PLAY
+said SPEAKING
+wait 1500
+# SAVE: in slot 1, sung from; slot 2 as it was
+tap SAVE
+wait 50
+said SAVED
+expect edit 0
+expect slotlen0 5
+expect slotlen1 42
+expect slot 0
+# the keys sing again
+key 7 down
+wait 200
+expect note 60
+key 7 up
+wait 300
+# kept through a power cycle
+reboot
+wait 400
+expect slotlen0 5
+expect slotlen1 42
+# a change not saved: HOME once warns, twice drops it
+listen
+tap EDIT
+wait 50
+tapkey 0
+expect edlen 6
+tap HOME
+expect edit 1
+said UNSAVED
+tap HOME
+expect edit 0
+said DROPPED
+expect slotlen0 5
+# slot 2 emptied: saved without it, the keys sing slot 1
+tap EDIT
+wait 50
+spin PRESET 1
+expect edlen 42
+press OCT-
+wait 3500
+release OCT-
+expect edlen 0
+tap SAVE
+wait 50
+expect slotlen1 0
+expect slot 0
+# and written again from empty: "la" (11, 0), sung from slot 2
+tap EDIT
+wait 50
+spin PRESET 1
+expect edlen 0
+tapkey 11
+tapkey 0
+tap SAVE
+wait 50
+expect slotlen1 2
+expect slot 1
+# PRESET with unsaved changes stays on the slot
+tap EDIT
+wait 50
+tapkey 0
+spin PRESET 1
+said SAVE FIRST
+expect edlen 3
+tap EDIT
+tap EDIT
+expect edit 0
+# FX in the editor: the keys as QWERTY in two rows (black QWERTYUIOP + space, white ASDFGHJKL ZXCVBNM), kept
+tap EDIT
+wait 50
+listen
+tap FX
+expect kb 1
+said QWERTY
+expect edit 1
+tapkey w0
+expect edchar 97
+tapkey b0
+expect edchar 113
+tapkey b9
+expect edchar 112
+tapkey b10
+expect edchar 32
+tapkey w15
+expect edchar 109
+tapkey w9
+expect edchar 122
+wait 100
+shot edit-qwerty.png
+# the rows' first keys (Q, A, Z) and the space glow in QWERTY (the middle level)
+leds
+tap EDIT
+tap EDIT
+expect edit 0
+# out of the editor: no row lights
+leds
+reboot
+wait 400
+expect kb 1
+# and back to A-Z
+tap EDIT
+wait 50
+tap FX
+expect kb 0
+tapkey 0
+expect edchar 97
+tapkey 1
+expect edchar 98
+tapkey 26
+expect edchar 32
+tap EDIT
+tap EDIT
+expect edit 0
+# ARP in the editor: a random line of the built-in words (3 to 6), unsaved until SAVE; another press, another line
+tap EDIT
+wait 50
+listen
+tap ARP
+said RANDOM
+expect edlen >6
+expect edcur >6
+tap ARP
+tap ARP
+wait 100
+shot edit-random.png
+tap SAVE
+wait 50
+expect edit 0
+expect slot 1
+expect slotlen1 >6
+key 7 down
+wait 300
+expect note 60
+key 7 up
+wait 200
