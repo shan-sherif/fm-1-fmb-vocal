@@ -96,22 +96,22 @@ def cat():
 
 def seal():
     """LFO then ALGORITHM two on: the seal, a key held (its breath pulsing), then PLAY: the trill, falling"""
-    return interleave([(0, "tap LFO"), (100, "spin ALGO 2"), (800, "key 7 down"), (1800, "key 7 up"), (2100, "tap PLAY")], "seal", 4.5)
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 2\nwait 100"), (800, "key 7 down"), (1800, "key 7 up"), (2100, "tap PLAY")], "seal", 4.5)
 
 
 def bird():
     """LFO then ALGORITHM: the songbird, a key held (its two voices), then PLAY: its flute phrase"""
-    return interleave([(0, "tap LFO"), (100, "spin ALGO 1"), (900, "key 7 down"), (1800, "key 7 up"), (2000, "tap PLAY")], "bird", 3.6)
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 1\nwait 100"), (900, "key 7 down"), (1800, "key 7 up"), (2000, "tap PLAY")], "bird", 3.6)
 
 
 def gator():
     """LFO then ALGORITHM three on: the alligator, PLAY: its bellow rising into chaos"""
-    return interleave([(0, "tap LFO"), (100, "spin ALGO 3"), (700, "tap PLAY")], "gator", 3.0)
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 3\nwait 100"), (700, "tap PLAY")], "gator", 3.0)
 
 
 def elephant():
     """LFO then ALGORITHM four on: the elephant, PRESET: the trumpet, PLAY: the lips buzzing into the trunk"""
-    return interleave([(0, "tap LFO"), (100, "spin ALGO 4"), (600, "spin PRESET 1"), (1400, "tap PLAY")], "elephant", 3.0)
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 4\nwait 100"), (600, "spin PRESET 1"), (1400, "tap PLAY")], "elephant", 3.0)
 
 
 def sing():

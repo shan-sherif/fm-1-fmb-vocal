@@ -278,7 +278,28 @@ On every creature:
   three up for the songbird, one up for the seal, three down for the alligator, four down for the elephant.
 - **PRESET** chooses one of its calls. **PLAY** plays it; **FX + a key** plays it at the key's pitch.
 - **K1-K4** are its settings, on two pages (**SEL**).
-- **SAVE** keeps each creature's settings and call. The beatbox needs a human body: LFO back first.
+- **SAVE** keeps each creature's settings, its call and its SOUND (below).
+- **ENV** and **SEQ** let the creature play a tune or your own melody ([below](#the-creatures-play-tunes-and-melodies)).
+  The beatbox needs a human body: LFO back first.
+
+### The creatures play tunes and melodies
+
+From 0.2.0, **ENV** in the Bestiary opens the SING page and **SEQ** the MELODY page (straight away: there is no
+beatbox for a creature), with the creature playing the notes in place of the voice. Each note is shifted by whole
+octaves into the creature's range, as its keys are. Creatures have no words, so a tune is played once through, a
+melody once through as written.
+
+- **K4 SOUND** chooses how the creature plays a note: **HELD** (its voice held for the note's length, a tie held, a
+  rest silent) or one of its **calls** (a MEOW, a TRILL, a TRUMPET...) started on each note at its pitch. Each
+  creature keeps its own; SAVE keeps them.
+- **ALGORITHM** changes the creature without leaving the page; **HOME** goes back to the Bestiary page (SEQ too, from
+  MELODY).
+- Everything else is as on those pages: PRESET the tune or melody, K1 the tempo, K2 the key; on MELODY, EDIT, the
+  keys and K3 write the steps (the keys play the creature while it is stopped). SING has no vibrato here.
+
+The screen shows the animal and its airway in the head's place, the pitch it is playing and its SOUND.
+
+![The cat playing Dreamy on the SING page: 659 Hz, the cat and its airway, SOUND HELD](img/beast-sing.png "ENV in the Bestiary: the cat plays a tune")
 
 The screen draws the animal side on, traced in its own colour, with its airway inside: the lungs, the glottis, the
 throat, the mouth (or beak) and the nose (or trunk), the breath lighting them as it flows. The mouth or beak opens

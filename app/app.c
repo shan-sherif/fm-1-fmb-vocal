@@ -147,6 +147,7 @@ static struct {
 static struct {
     uint8_t on, playing, dirty;
     uint8_t mel, edit, cur;                   /* the MELODY page (SEQ twice): on, step editing, its cursor */
+    uint8_t beast;                            /* (0.2.0) opened in the Bestiary: the creature plays the notes */
 } sg;
 
 static ch_beat_player_t seq PLAT_POOL;      /* the beatbox's sequencer (the audio interrupt's) */
@@ -167,6 +168,11 @@ static void creatures_load(void);
 static void song_load(void);
 static void melody_load(void);
 static void beat_open(void);
+static void beast_start(int tune, float tempo, int shift);
+static void beast_tick(void);
+static void beast_release(void);
+static void beast_sound_turn(int32_t e);
+static void draw_beast_top(const char *status, int lit);
 static int mel_count(int m);
 static void beats_load(void);
 static void vowel_off(int32_t note);
@@ -2505,7 +2511,8 @@ static void body_settle(uint32_t now)          /* ALGORITHM at rest: the body sw
 static struct {
     uint32_t magic;
     float set[NCRE][CH_CP_MAX];
-    uint8_t call[NCRE], which, rsv[3];
+    uint8_t call[NCRE], which, sound[NCRE];   /* sound (0.2.0, in 0.1.0's spare bytes): how it sings a note, 0 held, else
+                                               * call sound - 1 */
 } cre;
 static uint8_t seal_page;                     /* its settings' page, 0 or 1 */
 static int32_t skeys[16];                     /* its keys down, oldest first (MIDI notes) */
@@ -2522,6 +2529,7 @@ static const int8_t CRE_PAGE[NCRE][2][4] = {
 static const char *const CRE_PAGE_NAME[NCRE][2] = {{"VOICE", "PURR"}, {"SYRINX", "THROAT"}, {"PULSE", "VOICE"},
                                                    {"ROAR", "AIRWAY"}, {"VOICE", "AIRWAY"}};
 #define CRE (CRE_DEF[cre.which])
+typedef char cre_size_check[sizeof cre == 4 + NCRE * CH_CP_MAX * 4 + 2 * NCRE + 1 + 1 ? 1 : -1];   /* (0.1.0's size: its saves load) */
 
 /* a creature's pitch: its setting the keys and the calls play (the elephant's is its second) */
 static int cre_pitch(const ch_cdef_t *d)
@@ -2537,8 +2545,11 @@ static void creatures_load(void)
 {
     int i, c, n = plat_store_load(OBJ_CREATURES, &cre, sizeof cre), ok = 1;
     if (n == (int)sizeof cre && cre.magic == CREATURES_MAGIC && cre.which < NCRE) {
-        for (c = 0; c < NCRE; c++)
+        for (c = 0; c < NCRE; c++) {
             ok &= cre.call[c] < CRE_DEF[c]->ncalls;
+            if (cre.sound[c] > CRE_DEF[c]->ncalls)   /* (0.1.0's spare bytes: 0, held) */
+                cre.sound[c] = 0;
+        }
         if (ok)
             return;
     }
@@ -2754,11 +2765,25 @@ static void song_say(const char *what)
     app_say(what, t);
 }
 
+/* the song's time (s, the first beat at SONG_LEAD; -1 none): the voice's clock, or in the Bestiary the main loop's (the
+ * creature's notes are sent from here, as its keys are) */
+static uint32_t beast_ms0;
+static float sing_now(void)
+{
+    if (sg.beast)
+        return sg.playing ? (float)(plat_ms() - beast_ms0) / 1000.0f : -1.0f;
+    return song_now;
+}
+
 static void song_stop(void)
 {
     if (!sg.playing)
         return;
     sg.playing = 0;
+    if (sg.beast) {                           /* the creature: its note let go */
+        beast_release();
+        return;
+    }
     pend.n = pend.n_release = 0;               /* the score cleared: the song ends where it is */
     pend.clear = 1;
     pend.song = 0;
@@ -2768,8 +2793,12 @@ static void song_stop(void)
 /* the next phrase into the mailbox, when it is due within a second (and the mailbox is free) */
 static void song_tick(void)
 {
-    const float now = song_now;
+    const float now = sing_now();
     ch_plan_t plan;
+    if (sg.beast) {                           /* the Bestiary: the creature's notes, from here */
+        beast_tick();
+        return;
+    }
     if (!sg.playing)
         return;
     if (sg_next >= sg_n) {                    /* all sent: done when the last note has ended */
@@ -2810,6 +2839,10 @@ static void song_tick(void)
 static void mel_start_at(int m, float tempo, int shift);
 static void song_start(void)
 {
+    if (sg.beast) {                           /* the Bestiary: the tune's notes (or a melody's), on the creature */
+        beast_start(sng.tune, (float)sng.tempo / 100.0f, sng.key);
+        return;
+    }
     const ch_tune_t *t = &CH_TUNES[sng.tune < CH_NTUNES ? sng.tune : 0];
     if (sng.tune >= CH_NTUNES) {              /* one of the MELODY page's: as written, at SING's tempo and key */
         mel_start_at(sng.tune - CH_NTUNES, (float)sng.tempo / 100.0f, sng.key);
@@ -2846,12 +2879,12 @@ static void song_start(void)
 /* the note sounding now (-1: none), from the song's clock */
 static int song_note_now(void)
 {
-    const float t = song_now - SONG_LEAD;
+    const float t = sing_now() - SONG_LEAD;
     int k;
-    if (!sg.playing || song_now < 0.0f || t < 0.0f)
+    if (!sg.playing || sing_now() < 0.0f || t < 0.0f)
         return -1;
     for (k = 0; k < sg_n; k++)
-        if (mel_sung >= 0 ? t >= sg_time[k] && t < mel_end[k] : t < sg_time[k + 1])   /* (a melody's rest: none) */
+        if (mel_sung >= 0 || sg.beast ? t >= sg_time[k] && t < mel_end[k] : t < sg_time[k + 1])   /* (a melody's rest: none) */
             return k;
     return -1;
 }
@@ -2899,6 +2932,7 @@ static void song_open(void)
     sg.on = 1;
     sg.playing = 0;
     sg.mel = 0;
+    sg.beast = (uint8_t)(body_cur == BODY_SEAL);
     vp_send();
     song_say("SING");
 }
@@ -2907,6 +2941,11 @@ static void song_close(void)
 {
     song_stop();
     sg.on = 0;
+    if (sg.beast) {                           /* back to the creature's page */
+        app_say(sg.dirty ? (sg.mel ? "MELODY UNSAVED" : "SING UNSAVED") : "BESTIARY", sg.dirty ? "SAVE FIRST" : CRE->name);
+        sg.mel = sg.edit = sg.beast = 0;
+        return;
+    }
     if (sg.mel)
         app_say(sg.dirty ? "MELODY UNSAVED" : "WORDS", sg.dirty ? "SAVE IN MELODY" : "KEYS SING");
     else
@@ -2929,12 +2968,13 @@ static void sg_input(uint32_t keys, uint32_t btn, uint32_t now)
             } else {
                 song_start();
                 if (sg.playing)
-                    song_say("SINGING");
+                    song_say(sg.beast ? "PLAYING" : "SINGING");
                 else
                     song_say(sng.tune >= CH_NTUNES ? "NO NOTES" : "NO WORDS");
             }
         } else if (k == B_SAVE) {
-            if (plat_store_save(OBJ_SONG, &sng, sizeof sng) == 0 && plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0) {
+            if (plat_store_save(OBJ_SONG, &sng, sizeof sng) == 0 && plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0
+                && plat_store_save(OBJ_CREATURES, &cre, sizeof cre) == 0) {
                 sg.dirty = 0;
                 set_dirty = 0;
                 song_say("SAVED");
@@ -2972,6 +3012,12 @@ static void sg_input(uint32_t keys, uint32_t btn, uint32_t now)
         } else if (k == EN_K2) {              /* key, -12 .. +12 semitones */
             sng.key = (int8_t)clamp(sng.key + e, -12, 12);
             sg.dirty = 1;
+        } else if (sg.beast && k == EN_K3) {  /* (the Bestiary: no vibrato) */
+        } else if (sg.beast && k == EN_K4) {  /* the Bestiary: how the creature plays a note */
+            beast_sound_turn(e);
+        } else if (sg.beast && k == EN_ALGO) {   /* the Bestiary: another creature */
+            song_stop();
+            creature_pick(e);
         } else if (k == EN_K3) {              /* vibrato, 0 .. 100 cents */
             sng.vibrato = (uint8_t)clamp(sng.vibrato + 5 * e, 0, 100);
             sg.dirty = 1;
@@ -3078,12 +3124,40 @@ static int mel_notes(void) { return mel_count(mel.slot); }
 
 /* the song from the melody: each note its syllable (the words in order, again from the first to finish the melody's
  * last time), its start and its end (s from the first beat), a phrase ending at a rest and at the melody's end */
-static void mel_start_at(int m, float tempo, int shift)   /* melody m, its tempo x tempo, shift semitones more */
+/* melody m into the song's notes, `passes` times (each note its syllable, nsyl > 0: the words in order, again from the
+ * first; else none), its tempo x tempo, shift semitones more: each note's start and end. Returns the notes */
+static int mel_build(int m, float tempo, int shift, int passes, int nsyl)
 {
     const melody_t *ml = &mel.m[m];
     const float half = 30.0f / ((float)ml->bpm * tempo);   /* (a step: an eighth, half a beat) */
+    int p, i, n = 0;
+    for (p = 0; p < passes; p++)
+        for (i = 0; i < MEL_STEPS && n < CH_SONG_MAX; i++) {
+            int j = i + 1;
+            if (ml->s[i] <= MEL_TIE)
+                continue;
+            while (j < MEL_STEPS && ml->s[j] == MEL_TIE)
+                j++;
+            sg_note[n].midi = (uint8_t)clamp(ml->s[i] + ml->key + shift, 24, 108);
+            sg_note[n].beats = (float)(j - i) * 0.5f;
+            sg_note[n].syl = (int16_t)(nsyl > 0 ? n % nsyl : 0);
+            sg_note[n].held = 0;
+            sg_note[n].phrase_end = (uint8_t)(j >= MEL_STEPS || ml->s[j] == MEL_REST);
+            sg_time[n] = (float)(p * MEL_STEPS + i) * half;
+            mel_end[n] = (float)(p * MEL_STEPS + j) * half;
+            n++;
+        }
+    sg_n = n;
+    sg_time[n] = n ? mel_end[n - 1] : 0.0f;
+    mel_sung = (int8_t)m;
+    mel_half = half;
+    return n;
+}
+
+static void mel_start_at(int m, float tempo, int shift)   /* melody m sung, its tempo x tempo, shift semitones more */
+{
     const int nn = mel_count(m);
-    int passes, p, i, n = 0, syl = 0;
+    int passes, i;
     if (!nn)
         return;
     sg_nsyl = ch_lyrics(lyric, words_lookup, 0, sg_syl, CH_SYL_MAX);
@@ -3101,27 +3175,7 @@ static void mel_start_at(int m, float tempo, int shift)   /* melody m, its tempo
     passes = (sg_nsyl + nn - 1) / nn;
     while (passes > 1 && passes * nn > CH_SONG_MAX)
         passes--;
-    for (p = 0; p < passes; p++)
-        for (i = 0; i < MEL_STEPS && n < CH_SONG_MAX; i++) {
-            int j = i + 1;
-            if (ml->s[i] <= MEL_TIE)
-                continue;
-            while (j < MEL_STEPS && ml->s[j] == MEL_TIE)
-                j++;
-            sg_note[n].midi = (uint8_t)clamp(ml->s[i] + ml->key + shift, 24, 108);
-            sg_note[n].beats = (float)(j - i) * 0.5f;
-            sg_note[n].syl = (int16_t)(syl % sg_nsyl);
-            sg_note[n].held = 0;
-            sg_note[n].phrase_end = (uint8_t)(j >= MEL_STEPS || ml->s[j] == MEL_REST);
-            sg_time[n] = (float)(p * MEL_STEPS + i) * half;
-            mel_end[n] = (float)(p * MEL_STEPS + j) * half;
-            syl++;
-            n++;
-        }
-    sg_n = n;
-    sg_time[n] = n ? mel_end[n - 1] : 0.0f;
-    mel_sung = (int8_t)m;
-    mel_half = half;
+    mel_build(m, tempo, shift, passes, sg_nsyl);
     sg_next = 0;
     sg.playing = 1;
     live.sounding = 0;
@@ -3130,7 +3184,13 @@ static void mel_start_at(int m, float tempo, int shift)   /* melody m, its tempo
     song_tick();                              /* (the first phrase now) */
 }
 
-static void mel_start(void) { mel_start_at(mel.slot, 1.0f, 0); }
+static void mel_start(void)
+{
+    if (sg.beast)                             /* the Bestiary: the melody on the creature */
+        beast_start(CH_NTUNES + mel.slot, 1.0f, 0);
+    else
+        mel_start_at(mel.slot, 1.0f, 0);
+}
 
 /* the note sounding now (-1: none, a rest), and the step the song is at (-1: not playing) */
 static int mel_note_now(void) { return song_note_now(); }
@@ -3143,7 +3203,7 @@ static int mel_wraps(int *step, uint8_t *pass, int cap)
     static int nsyl_was;
     const int nn = mel_notes();
     int nsyl, passes, k, n = 0, q, i, c;
-    if (!nn || !lyric[0])
+    if (!nn || !lyric[0] || sg.beast)        /* (the Bestiary: no words) */
         return 0;
     if (sg.playing) {                         /* (singing: the song's count; its syllables in use, not counted again) */
         nsyl = sg_nsyl;
@@ -3176,16 +3236,16 @@ static int mel_wraps(int *step, uint8_t *pass, int cap)
 
 static int mel_pass_now(void)                 /* the time through the melody being sung (0 the first; -1 stopped) */
 {
-    const float t = song_now - SONG_LEAD;
-    if (!sg.playing || song_now < 0.0f || t < 0.0f)
+    const float t = sing_now() - SONG_LEAD;
+    if (!sg.playing || sing_now() < 0.0f || t < 0.0f)
         return -1;
     return (int)(t / (mel_half * (float)MEL_STEPS));
 }
 
 static int mel_step_now(void)
 {
-    const float t = song_now - SONG_LEAD;
-    if (!sg.playing || song_now < 0.0f || t < 0.0f)
+    const float t = sing_now() - SONG_LEAD;
+    if (!sg.playing || sing_now() < 0.0f || t < 0.0f)
         return -1;
     return (int)(t / mel_half) % MEL_STEPS;
 }
@@ -3233,7 +3293,7 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
             } else {
                 mel_start();
                 if (sg.playing)
-                    mel_say("SINGING");
+                    mel_say(sg.beast ? "PLAYING" : "SINGING");
                 else
                     app_say("MELODY", "NO NOTES");
             }
@@ -3251,7 +3311,8 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
             else
                 octave_step(1);
         } else if (k == B_SAVE) {
-            if (plat_store_save(OBJ_MELODY, &mel, sizeof mel) == 0 && plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0) {
+            if (plat_store_save(OBJ_MELODY, &mel, sizeof mel) == 0 && plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0
+                && plat_store_save(OBJ_CREATURES, &cre, sizeof cre) == 0) {
                 sg.dirty = 0;
                 set_dirty = 0;
                 mel_say("SAVED");
@@ -3259,6 +3320,8 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
                 app_say("SAVE", "FAILED");
             }
         } else if (k == B_HOME) {             /* the words */
+            song_close();
+        } else if (k == B_SEQ && sg.beast) {  /* the Bestiary (no beatbox): back to the creature */
             song_close();
         } else if (k == B_SEQ) {              /* SEQ again: back to the beatbox (HOME: the words) */
             const uint8_t unsaved = sg.dirty;
@@ -3290,6 +3353,11 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
             sg.dirty = 1;
         } else if (k == EN_K3) {              /* the step cursor */
             sg.cur = (uint8_t)(((sg.cur + e) % MEL_STEPS + MEL_STEPS) % MEL_STEPS);
+        } else if (sg.beast && k == EN_K4) {  /* the Bestiary: how the creature plays a note */
+            beast_sound_turn(e);
+        } else if (sg.beast && k == EN_ALGO) {   /* the Bestiary: another creature */
+            song_stop();
+            creature_pick(e);
         } else if (k == EN_K4) {              /* the word slot */
             int i = set.slot, step = e > 0 ? 1 : -1, tries;
             for (tries = 0; tries < 8; tries++) {
@@ -3311,6 +3379,101 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
     plat_glow(1);
     plat_leds(btn | 1u << B_SEQ | (sg.playing ? 1u << B_PLAY : 0u) | (sg.edit ? 1u << B_EDIT : 0u) | (sg.dirty ? 1u << B_SAVE : 0u),
               keys | midi_keys(set.octave));
+}
+
+/* -------------------------------------------------------- the Bestiary sings (0.2.0) --- */
+/* SING (ENV) and MELODY (SEQ) opened in the Bestiary: the creature plays the notes, a tune's or a melody's, from the
+ * main loop as its keys do (each note's pitch the octave that centres its range on middle C, as a key's). Its SOUND
+ * (K4, each creature's own, kept by SAVE): 0 its voice held for the note (a tie held, a rest silent, a note again
+ * at the same pitch let go a moment first), else one of its calls at the note's pitch */
+static int8_t beast_k = -1;                   /* the note it plays (-1 none) */
+
+static const char *beast_sound_name(void)     /* HELD, or the call's name */
+{
+    const int s = cre.sound[cre.which];
+    return s && s <= CRE->ncalls ? CRE->calls[s - 1].name : "HELD";
+}
+
+static void beast_sound_turn(int32_t e)
+{
+    const int n = CRE->ncalls + 1;
+    cre.sound[cre.which] = (uint8_t)(((cre.sound[cre.which] + e) % n + n) % n);
+    set_dirty = 1;
+    app_say("SOUND", beast_sound_name());
+}
+
+static void beast_release(void)               /* its note let go (stopped, ended, another creature) */
+{
+    if (beast_k >= 0 && beast_k < sg_n && cre.sound[cre.which] == 0)
+        seal_off(sg_note[beast_k].midi);
+    beast_k = -1;
+}
+
+/* tune t's notes (a tune of CHIMERA's: once through, a breath at each phrase's end; or the MELODY page's), the
+ * creature playing them from now */
+static void beast_start(int tune, float tempo, int shift)
+{
+    int n = 0, k;
+    if (tune >= CH_NTUNES) {                  /* a melody, once through, as written */
+        if (!mel_count(tune - CH_NTUNES))
+            return;
+        n = mel_build(tune - CH_NTUNES, tempo, shift, 1, 0);
+    } else {
+        const ch_tune_t *t = &CH_TUNES[tune];
+        const float beat = 60.0f / (t->bpm * tempo);
+        float at = 0;
+        int ph, q, i = 0;
+        for (ph = 0; ph < t->n_phrases; ph++)
+            for (q = 0; q < t->phrase_len[ph] && n < CH_SONG_MAX; q++, i++) {
+                const float d = (float)t->notes[i].half_beats * 0.5f * beat;
+                const int end = q == t->phrase_len[ph] - 1;
+                sg_note[n].midi = (uint8_t)clamp(t->notes[i].midi + shift, 24, 108);
+                sg_note[n].beats = (float)t->notes[i].half_beats * 0.5f;
+                sg_note[n].syl = 0;
+                sg_note[n].held = 0;
+                sg_note[n].phrase_end = (uint8_t)end;
+                sg_time[n] = at;
+                mel_end[n] = at + d - (end ? fm_minf(0.12f, 0.3f * d) : 0.0f);   /* (a breath before the next) */
+                at += d;
+                n++;
+            }
+        sg_n = n;
+        sg_time[n] = at;
+        mel_sung = -1;
+    }
+    for (k = 0; k + 1 < n; k++)               /* a note again at the same pitch: let go a moment first */
+        if (sg_note[k + 1].midi == sg_note[k].midi && mel_end[k] > sg_time[k + 1] - 0.001f)
+            mel_end[k] -= fm_minf(0.04f, 0.3f * (mel_end[k] - sg_time[k]));
+    beast_release();
+    sg_next = sg_n;                           /* (nothing for the voice's planner) */
+    beast_ms0 = plat_ms();
+    sg.playing = 1;
+    beast_tick();
+}
+
+/* the main loop's: the note now, played as SOUND says; done after the last */
+static void beast_tick(void)
+{
+    const int k = song_note_now();
+    if (!sg.playing)
+        return;
+    if (k != beast_k) {
+        const int sd = cre.sound[cre.which];
+        const int was = beast_k >= 0 ? sg_note[beast_k].midi : -1;
+        if (k >= 0 && sd == 0)
+            seal_on(sg_note[k].midi);
+        else if (k >= 0 && sd <= CRE->ncalls)
+            cm_send(sd - 1, ch_ckey_hz(&CRE->p[cre_pitch(CRE)], (float)sg_note[k].midi));
+        if (was >= 0 && sd == 0 && !(k >= 0 && sg_note[k].midi == was))
+            seal_off(was);
+        beast_k = (int8_t)k;
+        ui.redraw = 1;
+    }
+    if (sing_now() - SONG_LEAD > sg_time[sg_n] + 0.3f) {   /* the last note over */
+        sg.playing = 0;
+        beast_release();
+        ui.redraw = 1;
+    }
 }
 
 /* ------------------------------------------------------------------- the beatbox --- */
@@ -3708,15 +3871,12 @@ static void input(void)
         } else if (k == B_EDIT) {                /* the word editor, on the slot sung (from the next input) */
             ed_open();
         } else if (k == B_ENV) {                 /* CHIMERA's tunes (0.8.0): a human body's */
-            if (body_cur == BODY_SEAL)
-                app_say("SING", "LFO: BACK TO HUMAN");
-            else
-                song_open();
+            song_open();                     /* (in the Bestiary, the creature plays it: 0.2.0) */
         } else if (k == B_LFO) {                 /* the Bestiary (0.7.0), and back */
             bestiary_toggle();
         } else if (k == B_SEQ) {                 /* the beatbox (0.7.0): a human body's */
-            if (body_cur == BODY_SEAL)
-                app_say("BEATBOX", "LFO: BACK TO HUMAN");
+            if (body_cur == BODY_SEAL)       /* the Bestiary: MELODY, the creature playing (0.2.0; no beatbox) */
+                mel_open();
             else
                 beat_open();
         } else if (k == B_REC && FM1B_BLE)
@@ -4709,6 +4869,9 @@ static void draw_song(void)
     head_s = (float)BT_HEAD_H / (VIEW_Y1 - VIEW_Y0);
     head_x0 = 0.0f;
     head_y0 = (float)HOME_TOP;
+    if (sg.beast)                             /* the Bestiary: the creature in the head's place */
+        draw_beast_top(sg.playing ? "PLAYING" : "PLAY: START", sg.playing);
+    else
     for (y0 = HOME_TOP; y0 < HOME_TOP + BT_HEAD_H; y0 += BT_HEAD_H / 2) {
         cv_begin(240, BT_HEAD_H / 2, C_BLACK);
         if (head_ready)
@@ -4814,7 +4977,14 @@ static void draw_song(void)
                     text_cat(t, "+");
                 int_text(sng.key, t + (sng.key > 0));
             } else if (i == 2) {
+                if (sg.beast)                 /* (the Bestiary: no vibrato) */
+                    continue;
                 int_text(sng.vibrato, t);
+            } else if (sg.beast) {            /* the Bestiary: SOUND */
+                cv_rect(cx, 7, 4, 4, col[i]);
+                cv_text(cx + 8, 3, &FONT_XS, "SOUND", col[i]);
+                cv_text(cx, 22, &FONT_B, beast_sound_name(), col[i]);
+                continue;
             } else {
                 int_text(set.slot + 1, t);
             }
@@ -4824,6 +4994,33 @@ static void draw_song(void)
         }
     }
     cv_blit(0, BT_GRID_Y + 60);
+}
+
+/* SING and MELODY in the Bestiary (0.2.0): in the head's place, the creature (its pitch, the animal and its airway)
+ * and how it plays a note; the strip's top at screen row HOME_TOP, BT_HEAD_H high */
+static void draw_beast_top(const char *status, int lit)
+{
+    const ch_cdef_t *d = CRE;
+    const int pi = cre_pitch(d), sounding = cre_audio == cre.which && (cvoice.call >= 0 || cvoice.gate > 0.05f);
+    char t[24];
+    int32_t x;
+    cv_begin(240, 76, C_BLACK);
+    cv_text(8, 6, &FONT_XS, status, lit ? T_TEXT : T_MID);
+    if (sounding) {
+        int_text((int32_t)(cvoice.value[pi] + 0.5f), t);
+        x = cv_text(8, 22, &FONT_L, t, T_TEXT);
+        cv_text(x + 6, 36, &FONT_XS, "HZ", T_MID);
+    } else {
+        cv_text(8, 22, &FONT_L, "-", T_DIM);
+    }
+    draw_airway(0);
+    cv_blit(0, HOME_TOP);
+    cv_begin(240, BT_HEAD_H - 76, C_BLACK);
+    x = cv_text(8, 6, &FONT_XS, d->name, T_HI);
+    x = cv_text(x + 10, 6, &FONT_XS, "SOUND", T_MID);
+    cv_text(x + 6, 6, &FONT_XS, beast_sound_name(), T_K4);
+    cv_text(8, 22, &FONT_XS, cre.sound[cre.which] ? "A CALL ON EACH NOTE" : "ITS VOICE HELD FOR EACH NOTE", T_DIM);
+    cv_blit(0, HOME_TOP + 76);
 }
 
 /* ---------------------------------------------------------------- the MELODY page --- */
@@ -4854,6 +5051,9 @@ static void draw_melody(void)
     head_s = (float)BT_HEAD_H / (VIEW_Y1 - VIEW_Y0);
     head_x0 = 0.0f;
     head_y0 = (float)HOME_TOP;
+    if (sg.beast)                             /* the Bestiary: the creature in the head's place */
+        draw_beast_top(sg.playing ? "PLAYING" : sg.edit ? "STEP EDIT" : "PLAY: START", sg.playing || sg.edit);
+    else
     for (y0 = HOME_TOP; y0 < HOME_TOP + BT_HEAD_H; y0 += BT_HEAD_H / 2) {
         cv_begin(240, BT_HEAD_H / 2, C_BLACK);
         if (head_ready)
@@ -4967,6 +5167,11 @@ static void draw_melody(void)
                 int_text(MEL.key, t + (MEL.key > 0));
             } else if (i == 2) {
                 int_text(sg.cur + 1, t);
+            } else if (sg.beast) {            /* the Bestiary: SOUND */
+                cv_rect(cx, 7, 4, 4, col[i]);
+                cv_text(cx + 8, 3, &FONT_XS, "SOUND", col[i]);
+                cv_text(cx, 22, &FONT_B, beast_sound_name(), col[i]);
+                continue;
             } else {
                 int_text(set.slot + 1, t);
             }
@@ -5212,6 +5417,13 @@ int app_expect(const char *what, int *got)
         *got = mel_step_now();
     else if (!strcmp(what, "melnow"))
         *got = mel_note_now();
+    else if (!strcmp(what, "beast"))         /* (0.2.0) SING / MELODY in the Bestiary: open there, the note the creature
+                                              * plays (-1 none), its SOUND (0 held, else a call + 1) */
+        *got = sg.on && sg.beast;
+    else if (!strcmp(what, "beastk"))
+        *got = beast_k;
+    else if (!strcmp(what, "sound"))
+        *got = cre.sound[cre.which];
     else if (!strcmp(what, "melpass"))       /* the time through the melody being sung (0: the 1st; -1 stopped) */
         *got = mel_pass_now();
     else if (!strncmp(what, "melwrappass", 11)) {   /* melwrappassN: the time through the melody it falls in (0: 1st) */

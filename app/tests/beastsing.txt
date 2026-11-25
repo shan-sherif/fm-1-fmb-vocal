@@ -1,0 +1,98 @@
+# The Bestiary sings (0.2.0): in the Bestiary, ENV opens SING and SEQ opens MELODY (no beatbox), the creature playing
+# the notes from the main loop. SOUND (K4): its voice held for each note, or one of its calls on each. The cat plays
+# Dreamy held, then its MEOW on each note; ALGORITHM another creature, still on the page; HOME back to the Bestiary;
+# SEQ: MELODY, melody 1 on the songbird; SEQ back; SOUND kept through a reboot.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/beastsing.txt app/build/host
+wait 400
+listen
+tap LFO
+said BESTIARY
+wait 600
+expect creature 0
+tap ENV
+said SING
+wait 200
+expect sing 1
+expect beast 1
+expect body 3
+expect sound 0
+shot beast-sing-open.png
+# PLAY: the cat's voice held for each note of Dreamy
+wav beast-sing.wav
+peakreset
+tap PLAY
+said PLAYING
+wait 900
+expect singing 1
+expect beastk >-1
+expect sealgate >50
+shot beast-sing.png
+wait 1500
+tap PLAY
+said STOP
+wait 400
+expect singing 0
+expect beastk -1
+expect sealgate <5
+wavstop
+expect peak_db_max -1
+expect peak_db_min -30
+# K4: SOUND, its MEOW on each note
+spin K4 1
+said MEOW
+expect sound 1
+tap PLAY
+wait 600
+expect sealcall 0
+shot beast-sing-meow.png
+tap PLAY
+wait 300
+# ALGORITHM: the songbird, still on SING in the Bestiary
+spin ALGO 1
+said SONGBIRD
+wait 300
+expect creature 1
+expect creaudio 1
+expect beast 1
+expect sound 0
+# HOME: back to the Bestiary
+tap HOME
+said BESTIARY
+expect sing 0
+expect body 3
+# SEQ: MELODY straight away (no beatbox), melody 1 on the songbird, held
+tap SEQ
+said MELODY
+wait 200
+expect melody 1
+expect beat 0
+expect beast 1
+expect melwraps 0
+tap PLAY
+wait 900
+expect singing 1
+expect sealgate >50
+shot beast-melody.png
+tap PLAY
+wait 300
+expect sealgate <5
+# SEQ: back to the Bestiary
+tap SEQ
+said BESTIARY
+expect melody 0
+expect body 3
+# the cat's MEOW kept through a reboot (SAVE on the Bestiary page)
+spin ALGO -1
+wait 300
+expect creature 0
+expect sound 1
+tap SAVE
+said SAVED
+reboot
+wait 400
+tap LFO
+wait 400
+expect creature 0
+expect sound 1
+tap LFO
+said HUMAN

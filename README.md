@@ -39,15 +39,15 @@ Firmware for the M-VAVE FM-1 that does one thing: a simulated voice. Every sound
 sings words, tunes and your own melodies, and beatboxes; a cat's, a songbird's, a seal's, an alligator's and an
 elephant's airways join it.
 
-| WORDS: a syllable a key | VOWEL: the knobs move the mouth | PLAY: speaking the line |
+| LFO: the cat | LFO: the songbird | LFO: the seal |
 | :---: | :---: | :---: |
-| <img src="app/site/img/preview-words.gif" width="240" alt="The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next"> | <img src="app/site/img/preview-vowel.gif" width="240" alt="The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, with their formants"> | <img src="app/site/img/preview-speak.gif" width="240" alt="The FM-1's screen while PLAY speaks the line: the head moving through it"> |
-| **ENV: a tune** | **SEQ: the beatbox** | **SEQ twice: your melody** |
-| <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn"> | <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> | <img src="app/site/img/preview-melody.gif" width="240" alt="The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again"> |
-| **LFO: the cat** | **LFO: the songbird** | **LFO: the seal** |
 | <img src="app/site/img/preview-cat.gif" width="240" alt="The FM-1's screen playing the cat: a key held, its breath lighting its airway, then its meow"> | <img src="app/site/img/preview-bird.gif" width="240" alt="The FM-1's screen playing the songbird: a key held, its two valves opening, then its flute phrase"> | <img src="app/site/img/preview-seal.gif" width="240" alt="The FM-1's screen playing the seal: a key held, its breath pulsing through its throat and mouth, then its falling trill"> |
-| **LFO: the alligator** | **LFO: the elephant** | **ARP: the tongue by hand** |
-| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long body, the nose along its snout"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips lighting at the trunk's base"> | <img src="app/site/img/preview-tongue.gif" width="240" alt="The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named"> |
+| **LFO: the alligator** | **LFO: the elephant** | **SEQ: the beatbox** |
+| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long body, the nose along its snout"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips lighting at the trunk's base"> | <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> |
+| **SEQ twice: your melody** | **ENV: a tune** | **WORDS: a syllable a key** |
+| <img src="app/site/img/preview-melody.gif" width="240" alt="The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again"> | <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn"> | <img src="app/site/img/preview-words.gif" width="240" alt="The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next"> |
+| **VOWEL: the knobs move the mouth** | **PLAY: speaking the line** | **ARP: the tongue by hand** |
+| <img src="app/site/img/preview-vowel.gif" width="240" alt="The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, with their formants"> | <img src="app/site/img/preview-speak.gif" width="240" alt="The FM-1's screen while PLAY speaks the line: the head moving through it"> | <img src="app/site/img/preview-tongue.gif" width="240" alt="The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named"> |
 
 <sub>The firmware's own screen, from the host simulator (`tools/landing_anims.py`).</sub>
 
@@ -90,7 +90,8 @@ elephant's airways join it.
   alligator (a chaotic roar through a long, nearly shut tract: bellow, growl, hiss, water dance) and its African
   elephant (infrasonic rumbles; a trumpet from a lip valve at the base of its 1.85 m trunk: rumble, trumpet, squeak),
   and FMB Vocal's own **cat** (`app/dsp/cat.h`: a small airway and nose; meow, purr, hiss, trill, yowl), on the keys
-  and PLAY, their settings on the knobs. LFO again returns to the human voice.
+  and PLAY, their settings on the knobs. From 0.2.0 they play tunes (ENV) and your melodies (SEQ) too, each note
+  their voice held or one of their calls (K4 SOUND). LFO again returns to the human voice.
 - **MIDI in** plays the voice as the keys do, and lights the keys its notes fall on. From a MIDI controller,
   aftertouch deepens the vibrato (as pressing harder on a key does), the **mod wheel** (CC1) adds breath, and
   **pitch bend** bends ±2 semitones ([the manual](app/docs/MANUAL.md#playing-from-a-midi-controller)).
@@ -110,6 +111,8 @@ gestures). Words come from the Studio or are typed on the FM-1.
 
 ## To do
 
+- **A beatbox for the Bestiary:** the creatures' own drum sounds (a seal's chug, a cat's chirp...) on the SEQ step
+  sequencer; for now SEQ in the Bestiary goes straight to MELODY.
 - **Your own beats and tunes from SEQ:** room to save four beatbox beats and four tunes of your own from SEQ (now the
   beatbox has eight beats, CHIMERA's seven and one to write, and MELODY four melodies, which SING sings after its
   tunes).

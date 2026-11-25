@@ -13,7 +13,8 @@ VOCAL_SPLASH=1 app/build/host/fmb-vocal_host app/build/host/shots/boot.txt app/b
 app/build/host/fmb-vocal_host app/tests/manual_shots.txt app/build/host/shots >/dev/null
 app/build/host/fmb-vocal_host app/tests/cat.txt app/build/host/shots >/dev/null   # (the cat's)
 app/build/host/fmb-vocal_host app/tests/melody.txt app/build/host/shots >/dev/null   # (MELODY's)
-for f in boot home-words page-source home-vowel edit edit-qwerty body-child blend tongue beat beat-edit seal bird gator elephant cat sing melody melody-edit; do   # (the simulator's are uncompressed: Pillow packs them)
+app/build/host/fmb-vocal_host app/tests/beastsing.txt app/build/host/shots >/dev/null   # (the Bestiary's SING)
+for f in boot home-words page-source home-vowel edit edit-qwerty body-child blend tongue beat beat-edit seal bird gator elephant cat sing melody melody-edit beast-sing; do   # (the simulator's are uncompressed: Pillow packs them)
     .venv/bin/python -c "from PIL import Image; import sys; Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2], optimize=True)" \
         app/build/host/shots/$f.png app/docs/img/$f.png
 done

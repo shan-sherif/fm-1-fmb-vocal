@@ -1,6 +1,6 @@
 # Build settings (fm1-base tools/build.py). Started from fm1-base's template.
 name = "FMB-VOCAL"             # the build's file names (fmb-vocal-X.Y.Z.fwsc); APP_NAME is in app.h. The pages say "FMB Vocal"
-version = "0.1.0"             # the release: the site (GitHub Pages, on a push to main), the package, the boot screen
+version = "0.2.0"             # the release: the site (GitHub Pages, on a push to main), the package, the boot screen
 id_prefix = "FM-1_043"         # package identity, the same number for every version: the plain identity (what
                                # M-UPGRADE and the plain handshake read) is always FM-1_043; dev builds are FM-1_04300,
                                # releases FM-1_043XXYYZZ (the version, for the installer's check after an install)

@@ -72,10 +72,14 @@ wait 600
 expect body 3
 expect sealrate 360
 expect sealpick 1
-# the beatbox wants a human
+# SEQ: MELODY with the creature (0.2.0), not the beatbox (a human's); SEQ again: back
 tap SEQ
 expect beat 0
-said BEATBOX
+expect melody 1
+said MELODY
+tap SEQ
+said BESTIARY
+expect melody 0
 # ALGORITHM: another creature
 spin ALGO 1
 said CREATURE
