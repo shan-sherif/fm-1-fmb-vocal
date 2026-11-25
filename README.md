@@ -35,20 +35,19 @@
 ## What this is
 
 Firmware for the M-VAVE FM-1 that does one thing: a simulated voice. Every sound comes from a simulated airway
-(lungs, vocal folds, throat, mouth and nose), not from samples: CHIMERA's design, kept here. The same mouth sings,
-speaks and beatboxes, and a seal's, a songbird's, an alligator's and an elephant's airways join it.
+(lungs, vocal folds, throat, mouth and nose), not from samples: CHIMERA's design, kept here. The same mouth speaks,
+sings words, tunes and your own melodies, and beatboxes; a cat's, a songbird's, a seal's, an alligator's and an
+elephant's airways join it.
 
 | WORDS: a syllable a key | VOWEL: the knobs move the mouth | PLAY: speaking the line |
 | :---: | :---: | :---: |
 | <img src="app/site/img/preview-words.gif" width="240" alt="The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next"> | <img src="app/site/img/preview-vowel.gif" width="240" alt="The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, with their formants"> | <img src="app/site/img/preview-speak.gif" width="240" alt="The FM-1's screen while PLAY speaks the line: the head moving through it"> |
-
-| ENV: a tune | SEQ: the beatbox | LFO: the seal | LFO: the songbird |
-| :---: | :---: | :---: | :---: |
-| <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on CHIMERA's Dreamy: the head singing, the syllable, the melody's notes lit in turn"> | <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> | <img src="app/site/img/preview-seal.gif" width="240" alt="The FM-1's screen playing the seal: a key held, its breath pulsing through its throat and mouth, then its falling trill"> | <img src="app/site/img/preview-bird.gif" width="240" alt="The FM-1's screen playing the songbird: a key held, its two valves opening, then its flute phrase"> |
-
-| LFO: the alligator | LFO: the elephant |
-| :---: | :---: |
-| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long throat and mouth, the nose above"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips' valve lighting at the trunk's base"> |
+| **ENV: a tune** | **SEQ: the beatbox** | **SEQ twice: your melody** |
+| <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn"> | <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> | <img src="app/site/img/preview-melody.gif" width="240" alt="The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again"> |
+| **LFO: the cat** | **LFO: the songbird** | **LFO: the seal** |
+| <img src="app/site/img/preview-cat.gif" width="240" alt="The FM-1's screen playing the cat: a key held, its breath lighting its airway, then its meow"> | <img src="app/site/img/preview-bird.gif" width="240" alt="The FM-1's screen playing the songbird: a key held, its two valves opening, then its flute phrase"> | <img src="app/site/img/preview-seal.gif" width="240" alt="The FM-1's screen playing the seal: a key held, its breath pulsing through its throat and mouth, then its falling trill"> |
+| **LFO: the alligator** | **LFO: the elephant** | **ARP: the tongue by hand** |
+| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long body, the nose along its snout"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips lighting at the trunk's base"> | <img src="app/site/img/preview-tongue.gif" width="240" alt="The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named"> |
 
 <sub>The firmware's own screen, from the host simulator (`tools/landing_anims.py`).</sub>
 

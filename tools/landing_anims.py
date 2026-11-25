@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Shan-Sherif
 """The front page's animated previews: the device's screen from the host simulator (the firmware as it is), a frame
-every FRAME_MS while it sings words, plays VOWEL, speaks, beatboxes and plays the seal and the songbird, made into looping GIFs in app/site/img/ (fm1-base's site
+every FRAME_MS while it sings words, plays VOWEL and TONGUE, speaks, sings a tune and a melody, beatboxes and plays
+the Bestiary's creatures, made into looping GIFs in app/site/img/ (fm1-base's site
 copies app/site/img to the site's img/). Run after a change to a screen:
 
   .venv/bin/python tools/landing_anims.py"""
@@ -72,6 +73,22 @@ def beat():
     return interleave([(0, "tap SEQ"), (200, "tap PLAY")], "beat", 3.6)
 
 
+def melody():
+    """SEQ twice: MELODY, melody 1 singing slot 1 a syllable a note, the playhead on its 32 steps"""
+    return interleave([(0, "tap SEQ\nwait 100\ntap SEQ\nwait 100"), (300, "tap PLAY")], "melody", 4.2)   # (MELODY from the first frame)
+
+
+def tongue():
+    """ARP: TONGUE, a held note while K1-K2 move the tongue's body and K3-K4 its tip"""
+    ev = [(0, "tap ARP"), (300, "key 7 down")]
+    t = 500
+    for d in [("K1", 4)] * 3 + [("K2", 4)] * 3 + [("K3", 4)] * 3 + [("K4", 4)] * 3 + [("K1", -4)] * 3 + [("K2", -4)] * 3:
+        ev.append((t, f"spin {d[0]} {d[1]}"))
+        t += 180
+    ev.append((t + 300, "key 7 up"))
+    return interleave(ev, "tongue", (t + 900) / 1000)
+
+
 def cat():
     """LFO: the cat (the Bestiary's first), a key held, then PLAY: its meow, the mouth opening and closing"""
     return interleave([(0, "tap LFO"), (700, "key 7 down"), (1600, "key 7 up"), (1900, "tap PLAY")], "cat", 3.2)
@@ -119,7 +136,7 @@ def main():
     for f in WORK.glob("*.png"):
         f.unlink()
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("sing", sing())):
+    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("melody", melody()), ("tongue", tongue()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("sing", sing())):
         script = WORK / f"{name}.txt"
         # (a fresh boot each: the voice at rest, slot 1, page 1)
         script.write_text("\n".join(["wait 400"] + lines) + "\n")
