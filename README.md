@@ -4,13 +4,14 @@
 >
 > **FMB** stands for **Flying Mythical Beast**, a name the chimera goes by in a card game.
 >
+> **A variation of [FM-1 Chimera Vocal](https://github.com/shan-sherif/fm-1-chimera-vocal)**, with its own look and
+> features: the same simulated voice, played from the FM-1.
+>
 > **Voice engine based on [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) by Jameson Hodge**, a
 > physical-modelling voice synthesizer released under the
 > [MIT licence](https://github.com/jamesondh/chimera-vocal-synth/blob/main/LICENSE). The sound engine here (the
 > airway model, vocal folds, anatomy, gestures and the text-to-speech front end) is a port of his work, and credit
-> for how the voice works belongs to him. FMB Vocal is an independent variant of
-> [fm-1-chimera-vocal](https://github.com/shan-sherif/fm-1-chimera-vocal): it is not CHIMERA, and it is not
-> endorsed by Jameson Hodge.
+> for how the voice works belongs to him. FMB Vocal is not CHIMERA, and it is not endorsed by Jameson Hodge.
 >
 > The firmware is built on **[fm1-base](https://github.com/charlesvestal/fm1-base)** by Charles
 > Vestal and **[felucca-bsp](https://github.com/hugelton/felucca-bsp)** by Leo Kuroshita

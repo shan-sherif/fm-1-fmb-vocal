@@ -1,7 +1,8 @@
 # FMB Vocal
 
 **A physically simulated singing voice for the M-VAVE FM-1.** Lungs, vocal folds, throat, mouth and nose, simulated:
-an airway that sings, played from the keys and the knobs.
+an airway that sings, played from the keys and the knobs. A variation of
+[FM-1 Chimera Vocal](https://github.com/shan-sherif/fm-1-chimera-vocal), with its own look and features.
 
 > **Voice engine based on [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) by Jameson Hodge** (MIT
 > licence). FMB Vocal is an independent firmware, not CHIMERA and not endorsed by its author. It's built on
