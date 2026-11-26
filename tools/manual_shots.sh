@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Shan-Sherif
 # The manual's screenshots from the host simulator (the firmware as it is), into app/docs/img: the boot screen,
-# WORDS singing, a page of knobs, VOWEL mode, the word editor, the beatbox, the seal, the songbird, the alligator, the elephant, the robot, the tunes. Run after a change to a screen.
+# WORDS singing, a page of knobs, VOWEL mode, the word editor, the beatbox, the seal, the songbird, the alligator, the elephant, the robot, Squidlad, the tunes. Run after a change to a screen.
 #   sh tools/manual_shots.sh
 set -e
 cd "$(dirname "$0")/.."
@@ -15,7 +15,8 @@ app/build/host/fmb-vocal_host app/tests/cat.txt app/build/host/shots >/dev/null 
 app/build/host/fmb-vocal_host app/tests/melody.txt app/build/host/shots >/dev/null   # (MELODY's)
 app/build/host/fmb-vocal_host app/tests/beastsing.txt app/build/host/shots >/dev/null   # (the Bestiary's SING)
 app/build/host/fmb-vocal_host app/tests/robot.txt app/build/host/shots >/dev/null   # (the robot's)
-for f in boot home-words page-source home-vowel edit edit-qwerty body-child blend tongue beat beat-edit seal bird gator elephant cat sing melody melody-edit beast-sing robot; do   # (the simulator's are uncompressed: Pillow packs them)
+app/build/host/fmb-vocal_host app/tests/squid.txt app/build/host/shots >/dev/null   # (Squidlad's)
+for f in boot home-words page-source home-vowel edit edit-qwerty body-child blend tongue beat beat-edit seal bird gator elephant cat sing melody melody-edit beast-sing robot squid; do   # (the simulator's are uncompressed: Pillow packs them)
     .venv/bin/python -c "from PIL import Image; import sys; Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2], optimize=True)" \
         app/build/host/shots/$f.png app/docs/img/$f.png
 done

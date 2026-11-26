@@ -100,36 +100,36 @@ tap EDIT
 # HOME: the words (SEQ now goes on to MELODY)
 tap HOME
 wait 300
-# the Bestiary's seal (LFO, ALGORITHM two on): a key held
+# the Bestiary's seal (LFO, ALGORITHM four on: it opens on the robot, 0.4.0): a key held
 tap LFO
 wait 300
-spin ALGO 2
+spin ALGO 4
 wait 700
 key 7 down
 wait 600
 shot seal.png
 key 7 up
-spin ALGO -2
+spin ALGO -4
 wait 300
 tap LFO
 wait 600
 # the Bestiary's songbird (LFO, then ALGORITHM): a key held, its two voices
 tap LFO
 wait 300
-spin ALGO 1
+spin ALGO 3
 wait 1600
 key 7 down
 wait 600
 shot bird.png
 key 7 up
-spin ALGO -1
+spin ALGO -3
 wait 300
 tap LFO
 wait 600
-# the alligator (LFO, ALGORITHM three on): its bellow, mid-call
+# the alligator (LFO, ALGORITHM five on): its bellow, mid-call
 tap LFO
 wait 300
-spin ALGO 3
+spin ALGO 5
 wait 600
 tap PLAY
 wait 1200
@@ -145,7 +145,7 @@ wait 350
 shot elephant.png
 wait 1500
 spin PRESET -1
-spin ALGO -4
+spin ALGO -6
 wait 300
 tap LFO
 wait 600

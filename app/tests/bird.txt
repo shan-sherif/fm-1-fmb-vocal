@@ -8,7 +8,7 @@ listen
 tap LFO
 said BESTIARY
 wait 300
-spin ALGO 1
+spin ALGO 3
 said CREATURE
 wait 300
 expect creature 1

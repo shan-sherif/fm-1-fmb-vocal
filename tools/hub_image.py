@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Shan-Sherif
 """The Firmware Hub's card image (fmhub.json "image"): app/site/img/fmhub-square.png, 512 x 512. The name on a black
-ground with a faint grid, the knobs' four colours (K1 orange, K2 yellow, K3 violet, K4 cyan), and the home screen
-from the simulator (app/docs/img/home-words.png: run tools/manual_shots.sh first) in a frame. Run again after a
+ground with a faint grid, the knobs' four colours (K1 orange, K2 yellow, K3 violet, K4 cyan), and the robot's
+screen in the Bestiary from the simulator (app/docs/img/robot.png: run tools/manual_shots.sh first) in a frame. Run again after a
 change to the screen:
   .venv/bin/python tools/hub_image.py"""
 from pathlib import Path
@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 FONTS = ROOT / "base" / "assets" / "fonts"
-SHOT = ROOT / "app" / "docs" / "img" / "home-words.png"
+SHOT = ROOT / "app" / "docs" / "img" / "robot.png"
 OUT = ROOT / "app" / "site" / "img" / "fmhub-square.png"
 
 BLACK, GRID, FRAME = (0, 0, 0), (20, 20, 20), (60, 60, 60)

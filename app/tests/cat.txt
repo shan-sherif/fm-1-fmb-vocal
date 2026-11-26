@@ -1,5 +1,5 @@
-# The Bestiary's cat (FMB Vocal's own, app/dsp/cat.h): LFO opens the Bestiary on the cat, its first creature
-# (a small airway and nose on the waveguide at the full rate). A key held meows at its pitch (C4 an octave up: the
+# The Bestiary's cat (FMB Vocal's own, app/dsp/cat.h): LFO opens the Bestiary on the robot (0.4.0: FMB Vocal's
+# own first), ALGORITHM two on the cat (a small airway and nose on the waveguide at the full rate). A key held meows at its pitch (C4 an octave up: the
 # octave that centres its 120..1600 Hz on middle C); PLAY its meow; PRESET the purr (pulsed, through the nose) and the
 # hiss (no voice, air at the teeth); SEL its purr page; kept through a reboot; LFO back to the human voice.
 #   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/cat.txt app/build/host
@@ -7,6 +7,9 @@ wait 400
 listen
 tap LFO
 said BESTIARY
+wait 300
+spin ALGO 2
+said CREATURE
 wait 600
 expect creature 0
 expect creaudio 0

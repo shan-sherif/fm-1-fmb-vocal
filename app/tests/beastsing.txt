@@ -1,4 +1,4 @@
-# The Bestiary sings (0.2.0): in the Bestiary, ENV opens SING and SEQ opens MELODY (no beatbox), the creature playing
+# The Bestiary sings (0.2.0): in the Bestiary (ALGORITHM two on from the robot, where it opens: the cat), ENV opens SING and SEQ opens MELODY (no beatbox), the creature playing
 # the notes from the main loop. SOUND (K4): its voice held for each note, or one of its calls on each. The cat plays
 # Dreamy held, then its MEOW on each note; ALGORITHM another creature, still on the page; HOME back to the Bestiary;
 # SEQ: MELODY, melody 1 on the songbird; SEQ back; SOUND kept through a reboot.
@@ -7,6 +7,9 @@ wait 400
 listen
 tap LFO
 said BESTIARY
+wait 300
+spin ALGO 2
+said CREATURE
 wait 600
 expect creature 0
 tap ENV

@@ -49,7 +49,7 @@ jobs:
       test: |
         set -euo pipefail
         python3 base/tools/build.py app --host
-        for t in pages rest screens silence stress studio words edit bodies expression crack beat melody seal bird sing beasts cat robot beastsing brain anatomy blend tongue; do
+        for t in pages rest screens silence stress studio words edit bodies expression crack beat melody seal bird sing beasts cat robot squid beastsing melbeast brain anatomy blend tongue; do
           echo "test: $t"
           app/build/host/fmb-vocal_host "app/tests/$t.txt" "$RUNNER_TEMP/shots"
         done

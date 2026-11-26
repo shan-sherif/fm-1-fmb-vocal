@@ -10,7 +10,7 @@ and nose), not samples.
 FMB Vocal sings words: each key sings the next syllable of a line, at the key's pitch, through the engine's
 text-to-speech front end. In VOWEL mode the keys play pitch and the knobs move the mouth through the vowels. It also
 sings whole lines on built-in tunes (ENV). The same mouth beatboxes (SEQ), and LFO swaps it for
-a cat's, a songbird's, a seal's, an alligator's, an elephant's or a robot's (the Bestiary).
+a robot's, Squidlad's, a cat's, a songbird's, a seal's, an alligator's or an elephant's (the Bestiary).
 
 ![The boot screen: FMB Vocal, the version, the credits](img/boot.png "The boot screen")
 ![The home screen in WORDS: the head singing, NOW LO, NEXT THERE, page 1's knobs at the bottom](img/home-words.png "WORDS: singing the lo of Hello, there next; page 1's knobs below")
@@ -63,7 +63,7 @@ The FM-1 itself has no mod wheel or pitch bend: these come from the controller. 
 | SAVE | Keeps the knobs in the voice preset, the vowel snapshots and the settings, through power-off. Its light is on while something is unsaved. |
 | ENV | Sings the word slot on one of CHIMERA's tunes ([below](#tunes)). From 0.8.0. |
 | SEQ | The beatbox: the keys become drum sounds, with a step sequencer ([below](#beatbox)). SEQ again: MELODY, your own melody sung ([below](#melody)); SEQ switches between them, HOME back to the words. |
-| LFO | The Bestiary (the cat, the songbird, the seal, the alligator, the elephant or the robot) and back to the human voice ([below](#bestiary)). Its light is on in the Bestiary. From 0.7.0. |
+| LFO | The Bestiary (the robot, Squidlad, the cat, the songbird, the seal, the alligator or the elephant) and back to the human voice ([below](#bestiary)). Its light is on in the Bestiary. From 0.7.0. |
 | GLO | The debug page (the cores' timings) and back. From 0.8.0 it also opens over the beatbox and the SING page, to see their load while they play. |
 
 ## The knobs
@@ -249,8 +249,18 @@ sung (the words start again to finish its last time); with no words it sings "la
   **OCT−** writes a rest and **OCT+** a tie. **K3** moves the cursor.
 - With step editing off and the melody stopped, the keys sing as in WORDS (a note to try first).
 - **PRESET** chooses one of four melodies (the first two written, the others empty). **K1** is the tempo (40-200 BPM),
-  **K2** the key (±12 semitones), **K3** the step, **K4** the word slot; **ALGORITHM** the body.
+  **K2** the key (±12 semitones), **K3** the step, **K4** the word slot; **ALGORITHM** the body, or a creature
+  (below).
 - **SAVE** keeps the melodies.
+
+**A creature plays it** (from 0.4.0). On the MELODY page, **ALGORITHM** turns through one list: the voice's bodies,
+**MALE**, **FEMALE**, **CHILD** and **BLENDED**, then the Bestiary's creatures in its order: the **robot**,
+**Squidlad**, the **cat**, the **songbird**, the **seal**, the **alligator** and the **elephant**. Past BLENDED the melody is played by the creature in
+its own voice, its pitch following the notes (shifted by whole octaves into its range) and no words: the robot wubs
+it, Squidlad babbles it a syllable a note. K4 becomes **SOUND** (its voice HELD for each note, or one of its calls on each), as when MELODY
+is opened from the Bestiary ([below](#the-creatures-play-tunes-and-melodies)). The elephant is the list's end; turning
+back down past the robot, the voice sings again, on BLENDED. HOME from a creature goes to the Bestiary page (LFO: the
+voice).
 
 The screen shows the head singing and the syllable now, then the melody's 32 steps, each note a bar at its pitch as
 long as its ties, the step singing lit and, while editing, the cursor outlined. A dashed cyan line (the colour of
@@ -267,17 +277,18 @@ again on the 3rd note the 3rd time through.
 ## Bestiary
 
 **LFO** swaps the human voice for an animal's, and **LFO** again goes back to the human body ALGORITHM holds. On the
-Bestiary page **ALGORITHM** chooses the creature, in this order: the **cat** (FMB Vocal's own, where the Bestiary
-opens), then the **songbird**, the **seal**, the **alligator** and the **elephant** (CHIMERA's Bestiary), and last the
-**robot** (FMB Vocal's own, from 0.3.0). Each one is simulated the way the human voice is, from its own airway and its
-own sound source.
+Bestiary page **ALGORITHM** chooses the creature. FMB Vocal's own come first: the **robot** (from 0.3.0, where a
+fresh Bestiary opens), **Squidlad** (from 0.4.0) and the **cat**; then CHIMERA's, the **songbird**, the **seal**, the
+**alligator** and the **elephant**. (From 0.4.0; until then the cat came first and CHIMERA's after it. A saved
+Bestiary opens on the creature it was left on.) Each one is simulated the way the human voice is, from its own airway
+and its own sound source.
 
 On every creature:
 
 - **The keys** play its pitch: it breathes while a key is held, the last key held sounding. The keys are shifted by
-  whole octaves to sit in the creature's range (CHIMERA's mapping, centred on middle C): one octave up for the cat,
-  three up for the songbird, one up for the seal, three down for the alligator, four down for the elephant, one down
-  for the robot.
+  whole octaves to sit in the creature's range (CHIMERA's mapping, centred on middle C): one octave down for the robot,
+  one up for Squidlad, one up for the cat, three up for the songbird, one up for the seal, three down for the
+  alligator, four down for the elephant.
 - **PRESET** chooses one of its calls. **PLAY** plays it; **FX + a key** plays it at the key's pitch.
 - **K1-K4** are its settings, on two pages (**SEL**).
 - **SAVE** keeps each creature's settings, its call and its SOUND (below).
@@ -294,8 +305,8 @@ melody once through as written.
 - **K4 SOUND** chooses how the creature plays a note: **HELD** (its voice held for the note's length, a tie held, a
   rest silent) or one of its **calls** (a MEOW, a TRILL, a TRUMPET...) started on each note at its pitch. Each
   creature keeps its own; SAVE keeps them.
-- **ALGORITHM** changes the creature without leaving the page; **HOME** goes back to the Bestiary page (SEQ too, from
-  MELODY).
+- **ALGORITHM** changes the creature without leaving the page (on MELODY, down past the robot, the voice sings it
+  again); **HOME** goes back to the Bestiary page (SEQ too, from MELODY).
 - Everything else is as on those pages: PRESET the tune or melody, K1 the tempo, K2 the key; on MELODY, EDIT, the
   keys and K3 write the steps (the keys play the creature while it is stopped). SING has no vibrato here.
 
@@ -307,6 +318,51 @@ The screen draws the animal side on, traced in its own colour, with its airway i
 throat, the mouth (or beak) and the nose (or trunk), the breath lighting them as it flows. The mouth or beak opens
 as its setting does, the nose lights as NOSE opens it, and the songbird's two valves and the elephant's lips light
 as they open. The robot's mouth opens and shuts with its wobble, and its antenna's tip lights with it.
+
+### The robot
+
+A **robot**, FMB Vocal's second creature of its own (from 0.3.0), made for dubstep. A dubstep "wub" is a buzzing tone
+under a filter that an LFO sweeps up and down; a mouth going from "oo" to "aa" sweeps the same frequencies, so the
+robot is a voice box under a 16 cm tube (as long as a man's throat and mouth), and an LFO swings the tube between the
+two vowels. Its voice box is held perfectly steady (no vibrato or drift: a machine's) and made harsh; **GRIT** adds a
+growl (a subharmonic an octave down, chaos in the voice box and a little fizz). Each note wubs in the same way, from
+"oo". Its range is 30 to 700 Hz.
+
+| Page | K1 | K2 | K3 | K4 |
+| --- | --- | --- | --- | --- |
+| 1 WOBBLE | Wobble (the LFO's rate, Hz) | Depth (how far it swings from Mouth toward the whole sweep) | Grit (the growl) | Buzz (the voice box's harshness) |
+| 2 TUBE | Mouth (the vowel it rests on: "oo" ← → "aa") | Breath (the pressure, cmH₂O) | | |
+
+Its calls: WUB (two seconds of the wobble the knobs set), YOI (a gritty growl, the mouth swept open and shut by hand),
+LASER (a zap diving from high to low), RISER (rising, the wobble faster and grittier as it goes), DROP (a dive into a
+slow, deep wub). On the SING and MELODY pages its SOUND HELD wubs each note.
+
+![The robot: 131 Hz held, its bellows, voice box and tube, the mouth as open as the wobble's vowel, the call WUB chosen, page 1's settings](img/robot.png "LFO, then ALGORITHM: the robot")
+
+(Its tube is a little shorter than the human voice's and runs at the full rate, so it should cost core 2 a little less
+than the human voice does; not yet measured on the FM-1.)
+
+### Squidlad
+
+**Squidlad**, FMB Vocal's third creature of its own (from 0.4.0): a little squid with a small, high voice that
+babbles. No words: a quick run of made-up syllables, each a stop at the lips, the tongue's tip or its back (a "b", "d"
+or "g"), then a vowel picked at random from five (EE, EH, AH, OH, OO), at a pitch of its own a few semitones from
+the note. Each stop lets go with a little pop of air, and the breath swells through each syllable and dips between
+them. Its tube is 11 cm, a child's. Its range is 150 Hz to 1.4 kHz. On SING and MELODY its SOUND HELD babbles each
+note.
+
+| Page | K1 | K2 | K3 | K4 |
+| --- | --- | --- | --- | --- |
+| 1 BABBLE | Rate (syllables a second) | Hop (the pitch's jumps, semitones either way) | Squish (how shut and wet the stops are) | Mouth (its vowels: dark OH, OO ← → bright EE, EH, AH) |
+| 2 VOICE | Babble (0: a steady vowel, no syllables) | Breath (the lungs' pressure, cmH₂O) | | |
+
+Its calls: CHATTER (a run of babble, settling lower), CHEER (fast and rising, into a long bright "aah"), QUESTION
+(level, then up at the end), GRUMBLE (low, slow and dark), GIGGLE (quick, high, bright bursts).
+
+![Squidlad: 523 Hz held, its mantle, fins, big eye and tentacles, its breath and mouth, the call CHATTER chosen, page 1's settings](img/squid.png "LFO, then ALGORITHM: Squidlad")
+
+(Its babble's random choices come from a fixed seed, so it babbles the same way from each boot. Its tube is the
+Bestiary's second shortest and runs at the full rate; not yet measured on the FM-1.)
 
 ### The cat
 
@@ -403,29 +459,6 @@ into chaos), SQUEAK (the lips tensed, high).
 (Both are longer airways than the human's: the alligator's 68 cm, the elephant's 2.6 m with its trunk. Their sound is
 low, so on the FM-1 each is simulated at half the rate and smoothed back up: measured on the FM-1, the elephant's
 trumpet peaks at 64 % of core 2 and the alligator's bellow at 30 %. Their levels are within a few dB of CHIMERA's.)
-
-### The robot
-
-A **robot**, FMB Vocal's second creature of its own (from 0.3.0), made for dubstep. A dubstep "wub" is a buzzing tone
-under a filter that an LFO sweeps up and down; a mouth going from "oo" to "aa" sweeps the same frequencies, so the
-robot is a voice box under a 16 cm tube (as long as a man's throat and mouth), and an LFO swings the tube between the
-two vowels. Its voice box is held perfectly steady (no vibrato or drift: a machine's) and made harsh; **GRIT** adds a
-growl (a subharmonic an octave down, chaos in the voice box and a little fizz). Each note wubs in the same way, from
-"oo". Its range is 30 to 700 Hz.
-
-| Page | K1 | K2 | K3 | K4 |
-| --- | --- | --- | --- | --- |
-| 1 WOBBLE | Wobble (the LFO's rate, Hz) | Depth (how far it swings from Mouth toward the whole sweep) | Grit (the growl) | Buzz (the voice box's harshness) |
-| 2 TUBE | Mouth (the vowel it rests on: "oo" ← → "aa") | Breath (the pressure, cmH₂O) | | |
-
-Its calls: WUB (two seconds of the wobble the knobs set), YOI (a gritty growl, the mouth swept open and shut by hand),
-LASER (a zap diving from high to low), RISER (rising, the wobble faster and grittier as it goes), DROP (a dive into a
-slow, deep wub). On the SING and MELODY pages its SOUND HELD wubs each note.
-
-![The robot: 131 Hz held, its bellows, voice box and tube, the mouth as open as the wobble's vowel, the call WUB chosen, page 1's settings](img/robot.png "LFO, then ALGORITHM: the robot")
-
-(Its tube is a little shorter than the human voice's and runs at the full rate, so it should cost core 2 a little less
-than the human voice does; not yet measured on the FM-1.)
 
 ## Typing words
 

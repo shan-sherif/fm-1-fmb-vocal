@@ -90,35 +90,49 @@ def tongue():
 
 
 def cat():
-    """LFO: the cat (the Bestiary's first), a key held, then PLAY: its meow, the mouth opening and closing"""
-    return interleave([(0, "tap LFO"), (700, "key 7 down"), (1600, "key 7 up"), (1900, "tap PLAY")], "cat", 3.2)
+    """LFO then ALGORITHM two on (it opens on the robot): the cat, a key held, then PLAY: its meow, the mouth opening
+    and closing"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 2\nwait 100"), (700, "key 7 down"), (1600, "key 7 up"), (1900, "tap PLAY")], "cat", 3.2)
 
 
 def seal():
-    """LFO then ALGORITHM two on: the seal, a key held (its breath pulsing), then PLAY: the trill, falling"""
-    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 2\nwait 100"), (800, "key 7 down"), (1800, "key 7 up"), (2100, "tap PLAY")], "seal", 4.5)
+    """LFO then ALGORITHM four on: the seal, a key held (its breath pulsing), then PLAY: the trill, falling"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 4\nwait 100"), (800, "key 7 down"), (1800, "key 7 up"), (2100, "tap PLAY")], "seal", 4.5)
 
 
 def bird():
-    """LFO then ALGORITHM: the songbird, a key held (its two voices), then PLAY: its flute phrase"""
-    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 1\nwait 100"), (900, "key 7 down"), (1800, "key 7 up"), (2000, "tap PLAY")], "bird", 3.6)
+    """LFO then ALGORITHM three on: the songbird, a key held (its two voices), then PLAY: its flute phrase"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 3\nwait 100"), (900, "key 7 down"), (1800, "key 7 up"), (2000, "tap PLAY")], "bird", 3.6)
 
 
 def gator():
-    """LFO then ALGORITHM three on: the alligator, PLAY: its bellow rising into chaos"""
-    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 3\nwait 100"), (700, "tap PLAY")], "gator", 3.0)
+    """LFO then ALGORITHM five on: the alligator, PLAY: its bellow rising into chaos"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 5\nwait 100"), (700, "tap PLAY")], "gator", 3.0)
 
 
 def elephant():
-    """LFO then ALGORITHM four on: the elephant, PRESET: the trumpet, PLAY: the lips buzzing into the trunk"""
-    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 4\nwait 100"), (600, "spin PRESET 1"), (1400, "tap PLAY")], "elephant", 3.0)
+    """LFO then ALGORITHM six on: the elephant, PRESET: the trumpet, PLAY: the lips buzzing into the trunk"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 6\nwait 100"), (600, "spin PRESET 1"), (1400, "tap PLAY")], "elephant", 3.0)
 
 
 def robot():
-    """LFO then ALGORITHM five on: the robot, a key held (its wobble, the mouth opening and shutting), then PRESET: the
+    """LFO: the robot (the Bestiary's first), a key held (its wobble, the mouth opening and shutting), then PRESET: the
     drop, PLAY: the dive into a slow wub"""
-    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 5\nwait 100"), (300, "key 7 down"), (2300, "key 7 up"),
+    return interleave([(0, "tap LFO\nwait 200"), (300, "key 7 down"), (2300, "key 7 up"),
                        (2500, "spin PRESET 4"), (2700, "tap PLAY")], "robot", 5.4)
+
+
+def squid():
+    """LFO then ALGORITHM one on: Squidlad, a key held (its babble, the tentacles swaying), then PRESET: the cheer,
+    PLAY: fast, rising, into a long aah"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 1\nwait 100"), (300, "key 7 down"), (2100, "key 7 up"),
+                       (2300, "spin PRESET 1"), (2500, "tap PLAY")], "squid", 4.2)
+
+
+def melcreature():
+    """SEQ twice: MELODY; ALGORITHM up past the bodies to the robot (the first creature), which plays melody 1 in its own voice, its wub"""
+    return interleave([(0, "tap SEQ\nwait 100\ntap SEQ\nwait 100\nspin ALGO 4\nwait 300"), (300, "tap PLAY")],
+                      "melcreature", 4.2)
 
 
 def sing():
@@ -143,7 +157,7 @@ def main():
     for f in WORK.glob("*.png"):
         f.unlink()
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("melody", melody()), ("tongue", tongue()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("robot", robot()), ("sing", sing())):
+    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("melody", melody()), ("tongue", tongue()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("robot", robot()), ("squid", squid()), ("melcreature", melcreature()), ("sing", sing())):
         script = WORK / f"{name}.txt"
         # (a fresh boot each: the voice at rest, slot 1, page 1)
         script.write_text("\n".join(["wait 400"] + lines) + "\n")

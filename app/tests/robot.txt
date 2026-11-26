@@ -1,18 +1,16 @@
-# The Bestiary's robot (FMB Vocal's own, 0.3.0, app/dsp/robot.h): ALGORITHM five on from the cat, the last creature. A
+# The Bestiary's robot (FMB Vocal's own, 0.3.0, app/dsp/robot.h): LFO opens the Bestiary on it (0.4.0: FMB Vocal's own
+# first, the robot, Squidlad, the cat). A
 # dubstep voice: a harsh, steady voice box under a 16 cm tube that an LFO swings from "oo" to "aa" (the wobble). A key
 # held wubs at its pitch (C4 an octave down: the octave that centres its 30..700 Hz on middle C), the vowel from "oo"
 # at the note's start to "aa" half a WOBBLE cycle on (DEPTH 85 %: from 7 % to 92 %); PLAY its WUB; PRESET YOI (the
 # growl), LASER, RISER, DROP; the levels under the waveguide's limiter; SEL its TUBE page; kept through a reboot;
-# ALGORITHM on: round to the cat; LFO back to the human voice.
+# ALGORITHM on past Squidlad: round to the cat; LFO back to the human voice.
 #   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/robot.txt app/build/host
 wait 400
 listen
 tap LFO
 said BESTIARY
-wait 300
-spin ALGO 5
-said CREATURE
-wait 600
+wait 900
 expect creature 5
 expect creaudio 5
 expect sealpick 0
@@ -115,7 +113,15 @@ wait 400
 expect creature 5
 expect creaudio 5
 expect sealpick 4
-# ALGORITHM on: round to the cat; LFO: the human voice
+# WOBBLE (K1) up to its top, 32 Hz (0.4.0; 16 before)
+spin K1 200
+wait 100
+expect robotwobble 320
+# ALGORITHM on: Squidlad (0.4.0), then round to the cat; LFO: the human voice
+spin ALGO 1
+said CREATURE
+wait 300
+expect creature 6
 spin ALGO 1
 said CAT
 wait 300

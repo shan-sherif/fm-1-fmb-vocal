@@ -218,13 +218,28 @@ static ch_seal_t seal;
 static cat_t cat;
 #include "robot.h"                           /* the robot (FMB Vocal's own, 0.3.0): dubstep */
 static robot_t robot;
+#include "squid.h"                           /* Squidlad (FMB Vocal's own, 0.4.0): babble */
+static squid_t squid;
 static ch_bird_t bird PLAT_POOL;
-#define NCRE 6                               /* the Bestiary's creatures, in ALGORITHM's order: the cat (FMB Vocal's own,
+#define NCRE 7                               /* the Bestiary's creatures, in ALGORITHM's order: the cat (FMB Vocal's own,
                                               * app/dsp/cat.h, the first), the songbird, the seal, the alligator, the
-                                              * elephant (CHIMERA's), the robot (FMB Vocal's own, app/dsp/robot.h, the
-                                              * last: the others keep their numbers in the saves) */
-enum { CRE_CAT, CRE_BIRD, CRE_SEAL, CRE_GATOR, CRE_ELEPHANT, CRE_ROBOT };
-static const ch_cdef_t *const CRE_DEF[NCRE] = {&CH_CAT, &CH_BIRD, &CH_SEAL, &CH_GATOR, &CH_ELEPHANT, &CH_ROBOT};
+                                              * elephant (CHIMERA's), the robot (0.3.0, app/dsp/robot.h) and Squidlad
+                                              * (0.4.0, app/dsp/squid.h), FMB Vocal's own (each new one last: the others
+                                              * keep their numbers in the saves) */
+enum { CRE_CAT, CRE_BIRD, CRE_SEAL, CRE_GATOR, CRE_ELEPHANT, CRE_ROBOT, CRE_SQUID };
+static const ch_cdef_t *const CRE_DEF[NCRE] = {&CH_CAT, &CH_BIRD, &CH_SEAL, &CH_GATOR, &CH_ELEPHANT, &CH_ROBOT, &CH_SQUID};
+/* ALGORITHM's order (0.4.0): FMB Vocal's own creatures first (the robot, Squidlad, the cat), CHIMERA's after (the
+ * songbird, the seal, the alligator, the elephant). The numbers above stay each creature's own (the saves keep them);
+ * this is only the order they are turned through, and the first is where a fresh Bestiary opens */
+static const uint8_t CRE_ORDER[NCRE] = {CRE_ROBOT, CRE_SQUID, CRE_CAT, CRE_BIRD, CRE_SEAL, CRE_GATOR, CRE_ELEPHANT};
+static int cre_pos(int which)                /* a creature's place in ALGORITHM's order */
+{
+    int i;
+    for (i = 0; i < NCRE; i++)
+        if (CRE_ORDER[i] == which)
+            return i;
+    return 0;
+}
 static volatile float ele_lips_max;         /* (the test: the elephant's lips, their widest) */
 static ch_up_t cre_up;                       /* the alligator's and the elephant's: their half rate up to 44.1 kHz */
 static volatile uint8_t cre_div = 1;         /* the audio's creature runs at VM_FS / cre_div */
@@ -273,6 +288,8 @@ static void control_step(step_t *d)
             cat_control(&cat, &cvoice, dt, (float)VM_FS, &d->g, &d->p_lung, &d->shape);
         else if (cre_audio == CRE_ROBOT)
             robot_control(&robot, &cvoice, dt, (float)VM_FS, &d->g, &d->p_lung, &d->shape);
+        else if (cre_audio == CRE_SQUID)
+            squid_control(&squid, &cvoice, dt, (float)VM_FS, &d->g, &d->p_lung, &d->shape);
         else
             ch_seal_control(&seal, &cvoice, dt, (float)VM_FS, &d->g, &d->p_lung, &d->shape);
         d->has_shape = 1;
@@ -718,14 +735,18 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             gain_now = 0.0f;
             goto switched;
         }
-        if (seal_audio && (cre_audio == CRE_CAT || cre_audio == CRE_ROBOT)) {   /* the cat: its small airway and nose;
-                                              * the robot: its tube; at the full rate */
+        if (seal_audio && (cre_audio == CRE_CAT || cre_audio == CRE_ROBOT || cre_audio == CRE_SQUID)) {   /* the cat:
+                                              * its small airway and nose; the robot, Squidlad: their tubes; at the full
+                                              * rate */
             if (cre_audio == CRE_CAT) {
                 cat_wave(&wave, (float)VM_FS, VM_CTRL);
                 cat_init(&cat);
-            } else {
+            } else if (cre_audio == CRE_ROBOT) {
                 robot_wave(&wave, (float)VM_FS, VM_CTRL);
                 robot_init(&robot);
+            } else {
+                squid_wave(&wave, (float)VM_FS, VM_CTRL);
+                squid_init(&squid);
             }
             for (s2 = 0; s2 < NSUB; s2++)
                 steps[cur][s2].has_shape = 0;
@@ -2514,12 +2535,11 @@ static struct {
     uint8_t call[NCRE], which, sound[NCRE];   /* sound (0.2.0, in 0.1.0's spare bytes): how it sings a note, 0 held, else
                                                * call sound - 1 */
 } cre;
-#define NCRE_V1 5                             /* 0.1.0's and 0.2.0's saves: five creatures (the robot came in 0.3.0) */
-typedef struct {
-    uint32_t magic;
-    float set[NCRE_V1][CH_CP_MAX];
-    uint8_t call[NCRE_V1], which, sound[NCRE_V1];
-} cre_v1_t;
+/* the older saves, the same fields for fewer creatures: 0.1.0's and 0.2.0's five, 0.3.0's six (the robot); told
+ * apart by their size, read into this one at boot (the creatures since, from their defaults) */
+#define CRE_SAVE(n) struct { uint32_t magic; float set[n][CH_CP_MAX]; uint8_t call[n], which, sound[n]; }
+typedef CRE_SAVE(5) cre_v1_t;
+typedef CRE_SAVE(6) cre_v2_t;
 static uint8_t seal_page;                     /* its settings' page, 0 or 1 */
 static int32_t skeys[16];                     /* its keys down, oldest first (MIDI notes) */
 static int n_skeys;
@@ -2532,12 +2552,14 @@ static const int8_t CRE_PAGE[NCRE][2][4] = {
     {{CH_SEAL_PULSE_RATE, CH_SEAL_PULSE, CH_SEAL_DUTY, CH_SEAL_BRIGHT}, {CH_SEAL_ROUGH, CH_SEAL_PRESSURE, CH_SEAL_MOUTH, -1}},
     {{CH_GATOR_CHAOS, CH_GATOR_PRESSURE, CH_GATOR_HISS, -1}, {CH_GATOR_MOUTH, CH_GATOR_NOSTRILS, -1, -1}},
     {{CH_ELE_MODE, CH_ELE_LIP_PITCH, CH_ELE_PRESSURE, CH_ELE_CHAOS}, {CH_ELE_TRUNK, -1, -1, -1}},
-    {{ROB_WOBBLE, ROB_DEPTH, ROB_GRIT, ROB_BUZZ}, {ROB_MOUTH, ROB_PRESSURE, -1, -1}}};
+    {{ROB_WOBBLE, ROB_DEPTH, ROB_GRIT, ROB_BUZZ}, {ROB_MOUTH, ROB_PRESSURE, -1, -1}},
+    {{SQ_RATE, SQ_HOP, SQ_SQUISH, SQ_MOUTH}, {SQ_BABBLE, SQ_PRESSURE, -1, -1}}};
 static const char *const CRE_PAGE_NAME[NCRE][2] = {{"VOICE", "PURR"}, {"SYRINX", "THROAT"}, {"PULSE", "VOICE"},
-                                                   {"ROAR", "AIRWAY"}, {"VOICE", "AIRWAY"}, {"WOBBLE", "TUBE"}};
+                                                   {"ROAR", "AIRWAY"}, {"VOICE", "AIRWAY"}, {"WOBBLE", "TUBE"},
+                                                   {"BABBLE", "VOICE"}};
 #define CRE (CRE_DEF[cre.which])
-typedef char cre_size_check[sizeof(cre_v1_t) == 216 && sizeof cre != sizeof(cre_v1_t) ? 1 : -1];   /* (0.1.0's and
-                                              * 0.2.0's saves told apart from 0.3.0's by their size) */
+typedef char cre_size_check[sizeof(cre_v1_t) == 216 && sizeof(cre_v2_t) == 260 && sizeof cre != sizeof(cre_v1_t)
+                            && sizeof cre != sizeof(cre_v2_t) ? 1 : -1];   /* (the saves told apart by their size) */
 
 /* a creature's pitch: its setting the keys and the calls play (the elephant's is its second) */
 static int cre_pitch(const ch_cdef_t *d)
@@ -2549,22 +2571,33 @@ static int cre_pitch(const ch_cdef_t *d)
     return 0;
 }
 
+/* an older save's n creatures into cre, the ones since from their defaults */
+static void cre_from(int n, const float (*set)[CH_CP_MAX], const uint8_t *call, uint8_t which, const uint8_t *sound)
+{
+    int i, c;
+    cre.magic = CREATURES_MAGIC;
+    for (c = 0; c < NCRE; c++) {
+        for (i = 0; i < CH_CP_MAX; i++)
+            cre.set[c][i] = c < n ? set[c][i] : i < CRE_DEF[c]->np ? CRE_DEF[c]->p[i].def : 0.0f;
+        cre.call[c] = c < n ? call[c] : 0;
+        cre.sound[c] = c < n ? sound[c] : 0;
+    }
+    cre.which = which;
+}
+
 static void creatures_load(void)
 {
     union {                                   /* (on the stack: needed once, at boot) */
         cre_v1_t v1;
+        cre_v2_t v2;
         uint8_t b[sizeof cre];
     } u;
     int i, c, n = plat_store_load(OBJ_CREATURES, &u, sizeof u), ok = 1;
-    if (n == (int)sizeof u.v1 && u.v1.magic == CREATURES_MAGIC) {   /* 0.1.0's or 0.2.0's: the five, the robot new */
-        cre.magic = CREATURES_MAGIC;
-        for (c = 0; c < NCRE; c++) {
-            for (i = 0; i < CH_CP_MAX; i++)
-                cre.set[c][i] = c < NCRE_V1 ? u.v1.set[c][i] : i < CRE_DEF[c]->np ? CRE_DEF[c]->p[i].def : 0.0f;
-            cre.call[c] = c < NCRE_V1 ? u.v1.call[c] : 0;
-            cre.sound[c] = c < NCRE_V1 ? u.v1.sound[c] : 0;
-        }
-        cre.which = u.v1.which;
+    if (n == (int)sizeof u.v1 && u.v1.magic == CREATURES_MAGIC) {          /* 0.1.0's, 0.2.0's: five */
+        cre_from(5, u.v1.set, u.v1.call, u.v1.which, u.v1.sound);
+        n = (int)sizeof cre;
+    } else if (n == (int)sizeof u.v2 && u.v2.magic == CREATURES_MAGIC) {   /* 0.3.0's: six */
+        cre_from(6, u.v2.set, u.v2.call, u.v2.which, u.v2.sound);
         n = (int)sizeof cre;
     } else if (n == (int)sizeof cre)
         memcpy(&cre, u.b, sizeof cre);
@@ -2583,7 +2616,7 @@ static void creatures_load(void)
             cre.set[c][i] = i < CRE_DEF[c]->np ? CRE_DEF[c]->p[i].def : 0.0f;
         cre.call[c] = 0;
     }
-    cre.which = 0;
+    cre.which = CRE_ORDER[0];                 /* (a fresh Bestiary: the first in ALGORITHM's order) */
 }
 
 /* the creature's settings, its keys' pitch and breath, a call (call >= 0: play it at pitch, Hz; 0 its own; -2: none) */
@@ -2664,9 +2697,9 @@ static void seal_call(int32_t note)           /* the call PRESET picked (note < 
     app_say(CRE->calls[c].name, CRE->calls[c].hint);
 }
 
-static void creature_pick(int32_t e)          /* ALGORITHM on the Bestiary page: the next creature */
+static void creature_pick(int32_t e)          /* ALGORITHM on the Bestiary page: the next creature, in CRE_ORDER */
 {
-    cre.which = (uint8_t)(((cre.which + e) % NCRE + NCRE) % NCRE);
+    cre.which = CRE_ORDER[((cre_pos(cre.which) + (int)e) % NCRE + NCRE) % NCRE];
     set_dirty = 1;
     seal_mode_changed();
     app_say("CREATURE", CRE->name);
@@ -3289,6 +3322,38 @@ static void mel_set(uint8_t v)                /* the step at the cursor written,
     sg.dirty = 1;
 }
 
+/* MELODY's ALGORITHM (0.4.0): one list, the voice's bodies then the Bestiary's creatures (MALE, FEMALE, CHILD,
+ * BLENDED, then the creatures in CRE_ORDER: the robot, Squidlad, the cat ... the elephant), so the melody is sung or
+ * played without leaving the page. A creature plays it in its own voice (K4 SOUND: HELD, the robot's wub, at first), no
+ * word slot. Up past BLENDED: the first creature; down past it: BLENDED again (the list's last body, so the way back is
+ * the way up) */
+static void mel_to_beast(int pos)              /* the voice's MELODY: the creature at `pos` in CRE_ORDER plays it */
+{
+    song_stop();
+    body_pending = -1;
+    kv[K_BODY] = (float)BODY_BLENDED;
+    cre.which = CRE_ORDER[clamp(pos, 0, NCRE - 1)];
+    body_cur = BODY_SEAL;
+    seal_mode_changed();
+    body_req = BODY_SEAL;
+    sg.beast = 1;
+    set_dirty = 1;
+    app_say("MELODY", CRE->name);
+}
+
+static void mel_to_voice(void)                 /* a creature's MELODY: the voice sings it again, BLENDED */
+{
+    char t[24];
+    song_stop();
+    kv[K_BODY] = (float)BODY_BLENDED;
+    body_cur = 0xFFu;                         /* (so body_apply switches) */
+    body_apply();
+    sg.beast = 0;
+    set_dirty = 1;
+    body_label(kv[K_GENDER], kv[K_AGE], t);
+    app_say("MELODY", t);
+}
+
 static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
 {
     uint32_t k;
@@ -3379,9 +3444,16 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
             sg.cur = (uint8_t)(((sg.cur + e) % MEL_STEPS + MEL_STEPS) % MEL_STEPS);
         } else if (sg.beast && k == EN_K4) {  /* the Bestiary: how the creature plays a note */
             beast_sound_turn(e);
-        } else if (sg.beast && k == EN_ALGO) {   /* the Bestiary: another creature */
+        } else if (sg.beast && k == EN_ALGO) {   /* a creature: the next in CRE_ORDER; down past the first, the voice;
+                                              * the last the list's end */
+            const int at = cre_pos(cre.which), to = clamp(at + (int)e, -1, NCRE - 1);
             song_stop();
-            creature_pick(e);
+            if (to < 0)
+                mel_to_voice();
+            else if (to != at) {
+                creature_pick(to - at);
+                app_say("MELODY", CRE->name);
+            }
         } else if (k == EN_K4) {              /* the word slot */
             int i = set.slot, step = e > 0 ? 1 : -1, tries;
             for (tries = 0; tries < 8; tries++) {
@@ -3391,8 +3463,12 @@ static void mel_input(uint32_t keys, uint32_t btn, uint32_t now)
             }
             words_select(i);
             set_dirty = 1;
-        } else if (k == EN_ALGO) {            /* the body, as everywhere */
-            knob_turn(K_BODY, e);
+        } else if (k == EN_ALGO) {            /* the body; up past BLENDED, the creatures */
+            const int at = body_pending >= 0 ? body_pending : (int)(kv[K_BODY] + 0.5f);
+            if (at + (int)e > BODY_BLENDED)
+                mel_to_beast(at + (int)e - BODY_BLENDED - 1);
+            else
+                knob_turn(K_BODY, e);
         }
     }
     body_settle(now);
@@ -4737,9 +4813,10 @@ static void an_blob(int x, int y, int r, int32_t y0, uint16_t c)   /* a filled d
 }
 
 /* each animal's colour (the cat orange, the songbird yellow, the seal blue, the alligator green, the elephant grey,
- * the robot cyan) */
+ * the robot cyan, Squidlad pink) */
 static const uint16_t AN_COL[NCRE] = {RGB(0xff, 0x9a, 0x3c), RGB(0xff, 0xd2, 0x3f), RGB(0x7f, 0xb2, 0xff),
-                                      RGB(0x7b, 0xd3, 0x89), RGB(0xb8, 0xb8, 0xd0), RGB(0x3f, 0xd0, 0xe0)};
+                                      RGB(0x7b, 0xd3, 0x89), RGB(0xb8, 0xb8, 0xd0), RGB(0x3f, 0xd0, 0xe0),
+                                      RGB(0xff, 0x5c, 0xd6)};
 
 static void an_poly(const an_pt *p, int n, int closed, int32_t y0, uint16_t c)   /* straight lines through p (the robot's) */
 {
@@ -4852,6 +4929,33 @@ static void draw_airway(int32_t y0)          /* the creature, side on (the top s
         an_tube(THROAT, 4, 3, y0, air);
         an_tube(MOUTH, 2, 1 + (int)(w * 6.0f), y0, air);                   /* the mouth, as open as the vowel now */
         cv_rect(AN_X + 68, AN_Y + 48 - y0, 5, 1, T_MID);                   /* the voice box */
+    } else if (cre.which == CRE_SQUID) {     /* Squidlad: a small squid upright, its mantle a rounded point with a fin
+                                              * either side, a big eye, its tentacles hanging (swaying a syllable at a
+                                              * time); its airway from its breath to the mouth at its front, the mouth
+                                              * as open as the lips now */
+        static const an_pt MANTLE[] = {{62, 2}, {74, 8}, {86, 20}, {92, 34}, {90, 46}, {80, 52}, {64, 54}, {48, 52},
+                                       {38, 46}, {36, 34}, {42, 20}, {52, 8}};
+        static const an_pt FIN_R[] = {{82, 14}, {100, 12}, {90, 26}}, FIN_L[] = {{44, 14}, {26, 12}, {36, 26}};
+        static const an_pt THROAT[] = {{58, 40}, {72, 42}, {84, 42}};
+        const int live = seal_audio && cre_audio == CRE_SQUID && seal_breath > 0.05f;
+        const float w = live ? squid.open : 0.3f + 0.6f * cre.set[CRE_SQUID][SQ_MOUTH];
+        const int sway = live && (squid.syl & 1) ? 2 : 0;
+        int k;
+        an_trace(MANTLE, 12, 1, y0, col);
+        an_trace(FIN_R, 3, 0, y0, col);
+        an_trace(FIN_L, 3, 0, y0, col);
+        for (k = 0; k < 5; k++) {                                          /* the tentacles, curling at the tips */
+            const int x = 44 + k * 9, dx = (k & 1 ? sway : -sway);
+            const an_pt T[4] = {{(uint8_t)x, 53}, {(uint8_t)(x - 3 + dx), 60}, {(uint8_t)(x + 1 + dx), 66},
+                                {(uint8_t)(x - 2 - dx), 71}};
+            an_trace(T, 4, 0, y0, k == 2 ? col : dim);
+        }
+        an_blob(74, 30, 5, y0, col);                                       /* the eye, big */
+        an_blob(76, 29, 2, y0, C_BLACK);
+        an_blob(52, 38, 4, y0, air);                                       /* its breath */
+        an_tube(THROAT, 3, 2, y0, air);
+        an_tube((const an_pt[]){{84, 42}, {90, 42}}, 2, 1 + (int)(w * 5.0f), y0, air);   /* the mouth, as open as the lips */
+        cv_rect(AN_X + 62, AN_Y + 40 - y0, 1, 4, T_MID);                   /* the voice box */
     } else {                                 /* the cat, standing, its tail up */
         /* (the tail: a band 6 px wide either side of its curve, the rump to a round tip) */
         static const an_pt O[] = {{9, 3}, {11, 7}, {8, 16}, {8, 25}, {11, 33}, {18, 38}, {29, 41}, {46, 37}, {72, 37},
@@ -5598,6 +5702,15 @@ int app_expect(const char *what, int *got)
         *got = brain_c1;
     else if (!strcmp(what, "brainrgb"))      /* the brain's colour as drawn (0xRRGGBB) */
         *got = (int)((uint32_t)brain_hue().r << 16 | (uint32_t)brain_hue().g << 8 | brain_hue().b);
+    else if (!strcmp(what, "squidsyl"))      /* Squidlad's syllables so far; its vowel now (0 EE .. 4 OO); its pitch's hop
+                                              * now, tenths of a semitone */
+        *got = squid.syl;
+    else if (!strcmp(what, "squidvowel"))
+        *got = squid.vowel;
+    else if (!strcmp(what, "squidhop"))
+        *got = (int)(squid.hop_now * 10.0f + (squid.hop_now < 0 ? -0.5f : 0.5f));
+    else if (!strcmp(what, "robotwobble"))   /* the robot's WOBBLE setting, tenths of Hz */
+        *got = (int)(cre.set[CRE_ROBOT][ROB_WOBBLE] * 10.0f + 0.5f);
     else if (!strcmp(what, "robotopen"))     /* the robot's vowel now, % ("oo" 0 .. "aa" 100: the wobble) */
         *got = (int)(robot.open * 100.0f + 0.5f);
     else if (!strcmp(what, "brainfill"))     /* the brain's fill, % opaque */

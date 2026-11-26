@@ -8,7 +8,7 @@ tap LFO
 said BESTIARY
 wait 300
 # ALGORITHM two on: the seal (after the cat and the songbird)
-spin ALGO 2
+spin ALGO 4
 said SEAL
 wait 600
 expect body 3

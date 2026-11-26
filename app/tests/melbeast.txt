@@ -1,0 +1,83 @@
+# MELODY's ALGORITHM (0.4.0): one list, the voice's bodies then the Bestiary's creatures, on the page. From the voice's
+# MELODY (SEQ twice), ALGORITHM up past BLENDED: the robot (the first creature) plays the melody, in its own voice
+# (its wub), no words; on through Squidlad and the cat to the elephant, the list's end, and past it the elephant
+# still; down past the robot: the voice again, BLENDED, singing the word slot. HOME: the words.
+#   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/melbeast.txt app/build/host
+wait 400
+listen
+tap SEQ
+wait 200
+tap SEQ
+said MELODY
+wait 200
+expect melody 1
+expect beast 0
+expect bodysel 0
+# ALGORITHM three on: BLENDED (switched when the knob rests)
+spin ALGO 3
+said BLENDED
+wait 600
+expect bodysel 3
+expect beast 0
+# one more: the robot (the first creature: FMB Vocal's own first), its wub held for each note
+spin ALGO 1
+said MELODY
+wait 400
+expect melody 1
+expect beast 1
+expect creature 5
+expect creaudio 5
+expect sound 0
+wav melbeast-robot.wav
+peakreset
+tap PLAY
+said PLAYING
+wait 1200
+expect singing 1
+expect sealgate >50
+shot melbeast-robot.png
+wait 1500
+tap PLAY
+said STOP
+wait 400
+wavstop
+expect singing 0
+expect peak_db_max -14
+expect peak_db_min -40
+# on: Squidlad, the cat; on to the elephant, the list's end; past it, the elephant still
+spin ALGO 1
+said MELODY
+wait 300
+expect creature 6
+spin ALGO 1
+wait 300
+expect creature 0
+spin ALGO 4
+wait 300
+expect creature 4
+spin ALGO 2
+wait 300
+expect creature 4
+expect beast 1
+# down past the robot: the voice, BLENDED, singing the words
+spin ALGO -7
+said MELODY
+wait 400
+expect melody 1
+expect beast 0
+expect bodysel 3
+expect body <3
+tap PLAY
+said SINGING
+wait 1200
+expect singing 1
+expect melsung >0
+shot melbeast-voice.png
+tap PLAY
+said STOP
+wait 300
+# HOME: the words
+tap HOME
+said WORDS
+wait 300
+expect melody 0

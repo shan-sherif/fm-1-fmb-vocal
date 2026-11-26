@@ -31,7 +31,7 @@ enum { ROB_PITCH, ROB_WOBBLE, ROB_DEPTH, ROB_GRIT, ROB_BUZZ, ROB_MOUTH, ROB_PRES
 
 static const ch_cparam_t ROB_P[ROB_NP] = {
     {"PITCH", 30.0f, 700.0f, 110.0f, 0.01f, 1, 1, "HZ"},   /* (keys: C4 an octave down, 131 Hz) */
-    {"WOBBLE", 0.5f, 16.0f, 3.0f, 0.05f, 1, 0, "HZ"},
+    {"WOBBLE", 0.5f, 32.0f, 3.0f, 0.05f, 1, 0, "HZ"},   /* (32 Hz: a buzz of a wobble, 21 control steps a cycle) */
     {"DEPTH", 0.0f, 1.0f, 0.85f, 0.03f, 0, 0, ""},
     {"GRIT", 0.0f, 1.0f, 0.25f, 0.05f, 0, 0, ""},
     {"BUZZ", 0.0f, 1.0f, 0.7f, 0.05f, 0, 0, ""},

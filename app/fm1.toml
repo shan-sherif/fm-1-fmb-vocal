@@ -1,6 +1,6 @@
 # Build settings (fm1-base tools/build.py). Started from fm1-base's template.
 name = "FMB-VOCAL"             # the build's file names (fmb-vocal-X.Y.Z.fwsc); APP_NAME is in app.h. The pages say "FMB Vocal"
-version = "0.3.0"             # the release: the site (GitHub Pages, on a push to main), the package, the boot screen
+version = "0.4.0"             # the release: the site (GitHub Pages, on a push to main), the package, the boot screen
 id_prefix = "FM-1_043"         # package identity, the same number for every version: the plain identity (what
                                # M-UPGRADE and the plain handshake read) is always FM-1_043; dev builds are FM-1_04300,
                                # releases FM-1_043XXYYZZ (the version, for the installer's check after an install)
@@ -21,7 +21,7 @@ licence = "MPL-2.0 AND MIT"   # fm1-base's and the template's files MPL-2.0, CHI
 credits = "Voice engine based on CHIMERA by Jameson Hodge (MIT, github.com/jamesondh/chimera-vocal-synth), on fm1-base by Charles Vestal and felucca-bsp by Leo Kuroshita (MPL-2.0)."
 # firmware.json, for firmware hubs (fm1-base docs/FIRMWARE-JSON.md)
 author = "shan-sherif"
-description = "A simulated human voice: lungs, vocal folds, throat, mouth and nose, an airway that sings. Type words and the keys sing them a syllable at a time or on built-in tunes, play vowels and shape the mouth and tongue with the knobs, blend the male, female and child bodies, beatbox with a step sequencer, or play the Bestiary: a cat, songbird, seal, alligator, elephant and a dubstep robot. Voice engine based on CHIMERA by Jameson Hodge (MIT). Unofficial; not affiliated with M-VAVE, and not endorsed by CHIMERA's author."
+description = "A simulated human voice: lungs, vocal folds, throat, mouth and nose, an airway that sings. Type words and the keys sing them a syllable at a time or on built-in tunes, play vowels and shape the mouth and tongue with the knobs, blend the male, female and child bodies, beatbox with a step sequencer, or play the Bestiary: a dubstep robot, Squidlad the babbling squid, a cat, songbird, seal, alligator and elephant. Voice engine based on CHIMERA by Jameson Hodge (MIT). Unofficial; not affiliated with M-VAVE, and not endorsed by CHIMERA's author."
 tags = ["synth", "experimental"]
 install = "https://shan-sherif.github.io/fm-1-fmb-vocal/install/"
 site = "https://shan-sherif.github.io/fm-1-fmb-vocal/"
