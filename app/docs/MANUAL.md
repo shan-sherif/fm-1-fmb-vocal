@@ -445,7 +445,9 @@ At the top: the page (SING 1/5 ... or VOWEL), the mode, the body and the preset;
 moving as it sings, in its body's colour (male blue, female red, child green, a blend mixed by its shares): the
 tongue orange, the jaw yellow, the lips violet, the soft palate white. Its brain shows the FM-1's two processor cores
 at work: its colour the second core's load (the airway: cyan when idle, through green and yellow, to red at 85 %, the
-most the voice should use), its brightness the first core's (the control). They are read every half second, as the
+most the voice should use), its fill the first core's (the control: empty when idle, more opaque the busier it is, up
+to 60 % at 70 % load). The eye blinks now and then, shuts while a key holds the voice for more than two seconds, and
+turns red after ten. The loads are read every half second, as the
 debug page's CORE 2 and CORE 1 lines. Beside it in WORDS: NOW, the
 syllable sounding (a hyphen when its word goes on; SPEAKING while PLAY speaks), NEXT, the one the next key sings, and
 the word slot; in VOWEL: the vowel made and its formants. At the bottom: the page's four knobs.

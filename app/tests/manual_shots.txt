@@ -97,7 +97,8 @@ tapkey 7
 wait 400
 shot beat-edit.png
 tap EDIT
-tap SEQ
+# HOME: the words (SEQ now goes on to MELODY)
+tap HOME
 wait 300
 # the Bestiary's seal (LFO, ALGORITHM two on): a key held
 tap LFO

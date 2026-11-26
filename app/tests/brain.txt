@@ -1,22 +1,26 @@
 # The brain shows the two cores at work (FMB Vocal): the second core's load its colour (cyan idle, through green and
-# yellow, to red at 85 %), the first core's its brightness (35 % idle to full at 70 %); the loads read every half second
+# yellow, to red at 85 %), the first core's its fill (none idle, more opaque
+# the busier, 60 % at 70 % and over); the loads read every half second
 # (the GLO page's), the home screen redrawn when either moves 5 %. The simulator measures no loads: "loads C2 C1"
 # stands in for them.
 #   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/brain.txt app/build/host
 wait 800
-# idle: cyan, dim (0x3fd0e0 at 35 %)
+# idle: cyan (0x3fd0e0), no fill
 loads 0 0
 wait 600
-expect brainrgb 1460302
+expect brainrgb 4182240
+expect brainfill 0
 shot brain-idle.png
-# core 2 at 65 %: yellow; core 1 idle: dim (0xffd23f at 35 %)
-loads 65 0
+# core 2 at 65 %: yellow (0xffd23f); core 1 at 35 %: half the fill
+loads 65 35
 wait 600
-expect brainrgb 5851414
-# core 2 over 85 %: red; core 1 at 70 % or more: full (0xff4d4d)
+expect brainrgb 16765503
+expect brainfill 30
+# core 2 over 85 %: red (0xff4d4d); core 1 at 70 % or more: the fill at its most
 loads 90 75
 wait 600
 expect brainrgb 16731469
+expect brainfill 60
 shot brain-busy.png
 # singing keeps it (the loads are the cores', not the voice's)
 key 7 down

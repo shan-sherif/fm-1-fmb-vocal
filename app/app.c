@@ -1591,11 +1591,9 @@ static void snap_store(int i)
 }
 
 /* ---------------------------------------------------------------- the head --- */
-/* The head side on, as the anatomy's frame gives it (ch_profile.c, CHIMERA's outlines), redrawn in FMB Vocal's own
- * look: a fuller dome and a subtle mane after the chimera's lion on Greek vases (head_restyle, in place of the
- * engine's cranium), gyri on the brain, the neck's
- * vertebrae as an X-ray shows them, a plain round eye; the head in its body's colour, the moving parts in theirs.
- * The engine's files stay as they are (fm-1-chimera-vocal's pulls). */
+/* The head side on, as the anatomy's frame gives it (ch_profile.c, CHIMERA's outlines), drawn in FMB Vocal's own
+ * look: no outline, the brain (its gyri, the cores' load its colour), the spine as two lines, the airway and the moving
+ * parts each in its colour. The engine's files stay as they are (fm-1-chimera-vocal's pulls). */
 #include "ch_profile.h"
 static ch_profile_t prof PLAT_POOL;
 static void text_cat(char *d, const char *s);
@@ -1690,83 +1688,6 @@ static void beam(const ch_v2 *p, int n, int closed, int32_t y0, uint16_t c, uint
     poly_line(p, n, closed, y0, core);
 }
 
-/* ---- the outline: the cranium redrawn (body cm; built once per new pose, after ch_profile_build). After the lion's
- * head of the chimera on Greek red-figure vases, turned to face right and kept human: a smooth crown, and a subtle
- * mane of locks down the back of the head and the neck, its inner edge a softer line inside ---- */
-#define CRAN_TAIL 36                          /* ch_profile.c's cranium: 10 points at 4 a span, the skin's last 36 */
-#define SKIN_MAX ((int)(sizeof prof.skin / sizeof prof.skin[0]))
-#define MANE_PER 6                            /* the mane's spline: points a span */
-#define MANE_N 28                             /* its inner edge: every second point */
-static ch_v2 mane_in[MANE_N];                 /* the mane's inner edge (the head's line under the locks) */
-static int n_mane_in;
-
-static ch_v2 tmpl(const ch_tract_t *t, float x, float y)   /* the template's cm to the body's (ch_profile.c's B) */
-{
-    ch_v2 r;
-    r.x = x * t->k;
-    r.y = (y < 7.0f ? 7.0f - (7.0f - y) * t->pharynx : y) * t->k;
-    return r;
-}
-
-static int skin_add(int n, ch_v2 q)
-{
-    if (n < SKIN_MAX)
-        prof.skin[n++] = q;
-    return n;
-}
-
-static void head_restyle(const ch_tract_t *t)
-{
-    /* the forehead up to the crown, then the crown, the back of the head and the neck (template cm) */
-    static const float FRONT[3][2] = {{6.9f, 20.5f}, {4.9f, 22.8f}, {1.9f, 23.85f}};
-    static const float BACK[10][2] = {{1.9f, 23.85f}, {-1.6f, 23.9f}, {-5.2f, 22.3f}, {-7.3f, 20.0f}, {-9.0f, 15.6f},
-                                      {-8.6f, 11.9f}, {-7.5f, 8.9f}, {-6.85f, 4.8f}, {-6.6f, 0.0f}, {-6.6f, -4.6f}};
-    ch_v2 cp[10], out[(10 - 1) * MANE_PER + 1];
-    const float k = t->k, amp = 0.95f * k, locks = 9.0f;
-    float len = 0, s = 0, mane_from = -1;
-    int i, n, m;
-    if (prof.n_skin <= CRAN_TAIL)
-        return;
-    n = prof.n_skin - CRAN_TAIL;              /* (the face's last point: the forehead's top, FRONT's first) */
-    for (i = 0; i < 3; i++)
-        cp[i] = tmpl(t, FRONT[i][0], FRONT[i][1]);
-    m = ch_catmull_rom(cp, 3, 4, out);
-    for (i = 1; i < m; i++)
-        n = skin_add(n, out[i]);
-    /* the back, and its locks: each pushed out from the line (away from the head), a slow rise to its tip and a quick
-     * fall, so they hang back and down; from behind the crown to the neck, fading in and out */
-    for (i = 0; i < 10; i++)
-        cp[i] = tmpl(t, BACK[i][0], BACK[i][1]);
-    m = ch_catmull_rom(cp, 10, MANE_PER, out);
-    for (i = 1; i < m; i++) {
-        const float dx = out[i].x - out[i - 1].x, dy = out[i].y - out[i - 1].y;
-        len += fm_sqrtf(dx * dx + dy * dy);
-        if (mane_from < 0 && out[i].x < -3.0f * k)
-            mane_from = len;
-    }
-    n_mane_in = 0;
-    for (i = 1; i < m; i++) {
-        const ch_v2 *a = &out[i - 1], *b = &out[i + 1 < m ? i + 1 : i];
-        const float dx = out[i].x - out[i - 1].x, dy = out[i].y - out[i - 1].y;
-        float tx = b->x - a->x, ty = b->y - a->y, tl, u, f, h, run;
-        ch_v2 q = out[i];
-        s += fm_sqrtf(dx * dx + dy * dy);
-        tl = fm_sqrtf(tx * tx + ty * ty);
-        run = mane_from < 0 ? 0 : (s - mane_from) / (len - mane_from);   /* 0..1 along the mane */
-        if (run > 0 && tl > 0) {
-            u = run * locks - fm_floorf(run * locks);                     /* within a lock */
-            f = u < 0.72f ? u / 0.72f : (1.0f - u) / 0.28f;
-            h = amp * f * fm_clampf(run * 8.0f, 0, 1) * fm_clampf((1.0f - run) * 4.0f, 0, 1);
-            q.x += (ty * h + tx * 0.5f * h) / tl;   /* (the line runs down the back: (ty, -tx) points away from the */
-            q.y += (-tx * h + ty * 0.5f * h) / tl;  /*  head; along it, so each lock's tip trails down like a flame) */
-        }
-        n = skin_add(n, q);
-        if (run > 0 && (i & 1) && n_mane_in < MANE_N)
-            mane_in[n_mane_in++] = out[i];
-    }
-    prof.n_skin = n;
-}
-
 /* a closed outline with bumps along it where it is above y_lo (the brain's gyri): pushed out from its centre */
 static void bumpy(const ch_v2 *p, int n, float amp, float bumps, float y_lo, int32_t y0, uint16_t c)
 {
@@ -1848,8 +1769,8 @@ static void vertebra(const ch_v2 *v, int k, int nv, int32_t y0, uint16_t bone, u
 }
 
 /* the brain shows the two cores at work (stat_update: their average over the last half second, %): the second core's
- * load (the airway) its colour, cyan idle through green and yellow to red at 85 % (the room the voice needs); the
- * first core's (the control) its brightness */
+ * load (the airway) its colour, cyan idle through green and yellow to red at 85 % (the room the voice needs), its
+ * outline as bright as the head's other lines; the first core's (the control) its fill, the busier the more opaque */
 static uint8_t brain_c2, brain_c1;
 #ifdef PLAT_HOST
 static uint8_t host_loads;                   /* (the simulator: "loads C2 C1" given) */
@@ -1860,7 +1781,7 @@ static rgb8_t brain_hue(void)
         float at;
         rgb8_t c;
     } STOP[4] = {{0, {0x3f, 0xd0, 0xe0}}, {40, {0x2e, 0xc2, 0x7e}}, {65, {0xff, 0xd2, 0x3f}}, {85, {0xff, 0x4d, 0x4d}}};
-    const float l2 = (float)brain_c2, lit = 0.35f + 0.65f * fm_clampf((float)brain_c1 / 70.0f, 0, 1);
+    const float l2 = (float)brain_c2;
     rgb8_t o = STOP[3].c;
     int i;
     for (i = 0; i < 3; i++)
@@ -1871,10 +1792,76 @@ static rgb8_t brain_hue(void)
             o.b = (uint8_t)((float)STOP[i].c.b + f * (float)(STOP[i + 1].c.b - STOP[i].c.b));
             break;
         }
-    o.r = (uint8_t)((float)o.r * lit);
-    o.g = (uint8_t)((float)o.g * lit);
-    o.b = (uint8_t)((float)o.b * lit);
     return o;
+}
+
+/* the brain's fill: its outline's colour at BRAIN_FILL_MAX of it (over the black) when the first core is at
+ * BRAIN_FILL_AT % or more, none when idle; filled row by row between the outline's crossings */
+#define BRAIN_FILL_AT 70.0f
+#define BRAIN_FILL_MAX 0.6f
+static void brain_fill(int32_t y0, rgb8_t c)
+{
+    const float a = BRAIN_FILL_MAX * fm_clampf((float)brain_c1 / BRAIN_FILL_AT, 0, 1);
+    const int n = prof.n_brain;
+    float top = 1e9f, bot = -1e9f;
+    int32_t y, ya, yb;
+    int i;
+    if (a < 0.02f || n < 3)
+        return;
+    for (i = 0; i < n; i++) {
+        top = fm_minf(top, HEAD_Y(prof.brain[i].y));
+        bot = fm_maxf(bot, HEAD_Y(prof.brain[i].y));
+    }
+    ya = (int32_t)top;
+    yb = (int32_t)bot;
+    for (y = ya; y <= yb; y++) {
+        float xs[16];
+        const float sy = (float)y + 0.5f;
+        int m = 0, j, k;
+        for (i = 0; i < n && m < 16; i++) {   /* where the row crosses the outline's edges */
+            const ch_v2 *p = &prof.brain[i], *q = &prof.brain[(i + 1) % n];
+            const float py = HEAD_Y(p->y), qy = HEAD_Y(q->y);
+            if ((py <= sy) != (qy <= sy))
+                xs[m++] = HEAD_X(p->x) + (sy - py) / (qy - py) * (HEAD_X(q->x) - HEAD_X(p->x));
+        }
+        for (j = 1; j < m; j++)               /* (a few: in order by insertion) */
+            for (k = j; k > 0 && xs[k - 1] > xs[k]; k--) {
+                const float t = xs[k];
+                xs[k] = xs[k - 1];
+                xs[k - 1] = t;
+            }
+        for (j = 0; j + 1 < m; j += 2) {
+            const int32_t x0 = (int32_t)(xs[j] + 0.5f), x1 = (int32_t)(xs[j + 1] + 0.5f);
+            if (x1 > x0)
+                cv_rect(x0, y - y0, x1 - x0, 1, RGB((int)((float)c.r * a), (int)((float)c.g * a), (int)((float)c.b * a)));
+        }
+    }
+}
+
+/* the eye as last decided (eye_state): its openness 0 (shut) .. EYE_STEPS (open), EYE_RED added when it is red */
+#define EYE_STEPS 8u
+#define EYE_RED 16u
+static uint8_t eye_drawn = EYE_STEPS;
+
+static void draw_eye(int32_t y0, rgb8_t hue)
+{
+    static const rgb8_t RED = {0xff, 0x4d, 0x4d};
+    const float open = (float)(eye_drawn & (EYE_RED - 1u)) / (float)EYE_STEPS;
+    const rgb8_t c = (eye_drawn & EYE_RED) ? RED : hue;
+    const float cx = prof.eye_c.x - 0.55f * prof.eye_rx, cy = prof.eye_c.y;   /* (a little back from the brow) */
+    const float rx = prof.eye_rx * 1.3f, ry = prof.eye_rx * 0.8f * open;
+    ch_v2 e[24];
+    int i;
+    for (i = 0; i < 24; i++) {              /* an almond: the lids meet in points at the corners; shut, a line */
+        const float an = 6.2831853f * (float)i / 24.0f, sn = fm_sinf(an);
+        e[i].x = cx + rx * fm_cosf(an);
+        e[i].y = cy + ry * sn * fm_fabsf(sn);
+    }
+    poly_line(e, 24, 1, y0, shade(c, 100));
+    if (open > 0.6f) {                      /* the pupil */
+        const int32_t px = (int32_t)HEAD_X(cx + 0.15f * rx), py = (int32_t)HEAD_Y(cy) - y0;
+        cv_rect(px - 1, py - 1, 3, 3, hot(c));
+    }
 }
 
 /* the head (prof) on the canvas, whose top is screen row y0 */
@@ -1882,30 +1869,32 @@ static void draw_head(int32_t y0)
 {
     const rgb8_t hue = head_hue();
     const uint16_t c_hi = shade(hue, 85), c_mid = shade(hue, 62), c_dim = shade(hue, 42);
-    ch_v2 e[24];
-    int i;
-    /* the body's structure, in its colour: the skull's inner table, the brain and its gyri, the spine */
-    poly_line(prof.skull, prof.n_skull, 1, y0, c_dim);
+    ch_v2 sp[2][18];
+    int i, n = 0;
+    /* no outline (no skin, skull or eye): the brain and its gyri, the spine as two lines (its front and back), the
+     * airway and the moving parts */
+    (void)c_dim;
+    brain_fill(y0, brain_hue());
     bumpy(prof.brain, prof.n_brain, 0.62f * prof.eye_rx / 1.1f, 11.0f, prof.eye_c.y, y0, shade(brain_hue(), 100));
-    poly_line(prof.sulcus, prof.n_sulcus, 0, y0, c_dim);
-    for (i = 0; i < prof.n_vertebrae; i++)
-        vertebra(prof.vertebrae[i], i, prof.n_vertebrae, y0, c_mid, c_dim);
+    poly_line(prof.sulcus, prof.n_sulcus, 0, y0, shade(brain_hue(), 100));
+    for (i = 0; i < prof.n_vertebrae && n + 2 <= 18; i++) {   /* (bottom to top: each box's [0] top back, [1] bottom front) */
+        const ch_v2 *v = prof.vertebrae[i];
+        sp[0][n].x = v[0].x; sp[0][n].y = v[1].y;
+        sp[1][n].x = v[1].x; sp[1][n].y = v[1].y;
+        sp[0][n + 1].x = v[0].x; sp[0][n + 1].y = v[0].y;
+        sp[1][n + 1].x = v[1].x; sp[1][n + 1].y = v[0].y;
+        n += 2;
+    }
+    poly_line(sp[0], n, 0, y0, c_mid);
+    poly_line(sp[1], n, 0, y0, c_mid);
     poly_line(prof.nasal, prof.n_nasal, 1, y0, c_mid);
     poly_line(prof.palate, 10, 0, y0, c_mid);
     poly_line(prof.trachea[0], 2, 0, y0, c_mid);
     poly_line(prof.trachea[1], 2, 0, y0, c_mid);
     poly_line(prof.upper_teeth, 5, 1, y0, T_HI);   /* (the teeth bone white) */
     poly_line(prof.lower_teeth, 7, 0, y0, T_HI);
-    for (i = 0; i < 24; i++) {              /* the eye: a rounded triangle, as the vases' lions have it, a corner forward */
-        const float an = 6.2831853f * (float)i / 24.0f;
-        const float r = prof.eye_rx * 1.25f * (1.0f + 0.27f * fm_cosf(3.0f * (an - 0.2f)));
-        e[i].x = prof.eye_c.x - 0.55f * prof.eye_rx + r * fm_cosf(an);   /* (a little back from the brow) */
-        e[i].y = prof.eye_c.y + r * fm_sinf(an);
-    }
-    poly_line(e, 24, 1, y0, shade(hue, 100));
-    /* the skin (with the mane) and the airway's walls, the body's colour at full */
-    beam(prof.skin, prof.n_skin, 0, y0, shade(hue, 100), hot(hue));
-    poly_line(mane_in, n_mane_in, 0, y0, c_dim);   /* (the mane's inner edge) */
+    draw_eye(y0, hue);
+    /* the airway's walls, the body's colour (a blend's mixed) */
     poly_line(prof.airway, prof.n_airway, 0, y0, c_hi);
     /* the moving parts, each its own colour: the tongue orange, the jaw yellow, the lips violet, the soft palate white */
     beam(prof.tongue, prof.n_tongue, 1, y0, shade(HUE_TONGUE, 100), hot(HUE_TONGUE));
@@ -4198,6 +4187,53 @@ static void home_init(void)
 }
 
 /* the head again if the voice's articulation moved (1: it was) */
+/* the eye: a blink now and then (every 2.5 to 6 s, 200 ms shut and open again); shut while the keys hold the voice past
+ * EYE_REST_MS (slowly, opening again when they let go), and red past EYE_RED_MS. Its state, EYE_STEPS steps of
+ * openness and the red: the screen is drawn again only when it changes */
+#define EYE_REST_MS 2000u
+#define EYE_RED_MS 10000u
+#define EYE_BLINK_MS 200u
+#define EYE_SHUT_MS 300u                      /* (closing and opening while held) */
+static uint32_t eye_seed = 0x2545f491u, eye_blink_at, eye_held_at, eye_let_go_at;
+static uint8_t eye_held, eye_rested;
+
+static uint8_t eye_state(uint32_t now)
+{
+    const int keys = voice_note >= 0 && !speaking && !bt.on && !sg.playing;   /* (the keys', not a tune's or PLAY's) */
+    float open = 1.0f;
+    int red = 0;
+    if (keys && !eye_held) {
+        eye_held = 1;
+        eye_held_at = now;
+    } else if (!keys && eye_held) {
+        eye_held = 0;
+        eye_rested = now - eye_held_at > EYE_REST_MS;
+        eye_let_go_at = now;
+    }
+    if (eye_held) {
+        const uint32_t t = now - eye_held_at;
+        if (t > EYE_REST_MS)
+            open = 1.0f - fm_clampf((float)(t - EYE_REST_MS) / (float)EYE_SHUT_MS, 0, 1);
+        red = t > EYE_RED_MS;
+    } else if (eye_rested) {
+        open = fm_clampf((float)(now - eye_let_go_at) / (float)EYE_SHUT_MS, 0, 1);
+        if (open >= 1.0f)
+            eye_rested = 0;
+    }
+    if (!eye_blink_at)
+        eye_blink_at = now + 3000u;
+    if ((int32_t)(now - eye_blink_at) >= 0) {
+        const uint32_t t = now - eye_blink_at;
+        if (t < EYE_BLINK_MS)
+            open = fm_minf(open, fm_fabsf((float)t - EYE_BLINK_MS / 2.0f) / (EYE_BLINK_MS / 2.0f));
+        else {
+            eye_seed = eye_seed * 1664525u + 1013904223u;   /* (the next one 2.5 to 6 s on) */
+            eye_blink_at = now + 2500u + (eye_seed >> 8) % 3500u;
+        }
+    }
+    return (uint8_t)((uint32_t)(open * (float)EYE_STEPS + 0.5f) | (red ? EYE_RED : 0u));
+}
+
 static int home_head_update(void)
 {
     float a[CH_NARTIC], d = 0.0f;
@@ -4213,7 +4249,6 @@ static int home_head_update(void)
         return 0;
     ch_tract_apply(&dtract, a, 0.0f);
     ch_profile_build(&dtract, &prof);
-    head_restyle(&dtract);
     for (k = 0; k < CH_NARTIC; k++)
         drawn_x[k] = a[k];
     head_at = now;
@@ -5270,6 +5305,13 @@ void app_frame(void)
     }
     if (!page_debug && !ed.on && home_head_update())   /* the voice moved: the head again */
         ui.redraw = 1;
+    if (!page_debug && !ed.on && body_cur != BODY_SEAL) {   /* the eye blinked, shut or opened, or turned red */
+        const uint8_t e = eye_state(now);
+        if (e != eye_drawn) {
+            eye_drawn = e;
+            ui.redraw = 1;
+        }
+    }
     if (body_cur == BODY_SEAL && !ed.on && !bt.on) {   /* the seal: its breath pulsing, ~20 times a second */
         static uint32_t seal_at;
         if (now - seal_at >= 50u && (seal_breath > 0.05f || cvoice.call >= 0 || plat_ms() - seal_played_at < 400u)) {
@@ -5486,6 +5528,8 @@ int app_expect(const char *what, int *got)
         *got = brain_c1;
     else if (!strcmp(what, "brainrgb"))      /* the brain's colour as drawn (0xRRGGBB) */
         *got = (int)((uint32_t)brain_hue().r << 16 | (uint32_t)brain_hue().g << 8 | brain_hue().b);
+    else if (!strcmp(what, "brainfill"))     /* the brain's fill, % opaque */
+        *got = (int)(100.0f * BRAIN_FILL_MAX * fm_clampf((float)brain_c1 / BRAIN_FILL_AT, 0, 1) + 0.5f);
     else if (!strcmp(what, "sealhz"))
         *got = (int)(cvoice.value[cre_pitch(CRE_DEF[cre_audio])] + 0.5f);
     else if (!strcmp(what, "sealgate"))

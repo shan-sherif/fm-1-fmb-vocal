@@ -67,9 +67,10 @@ elephant's airways join it.
   cursor); yellow a warning, red an error. The firmware, the Studio, the installer and the site share the same
   colours. The head, side on and live as it sings, is drawn in its body's colour (male blue, female red, child
   green, a blend mixed by its shares), its moving parts in theirs (the tongue orange, the jaw yellow, the lips violet,
-  the soft palate white): a subtle mane down the back of the head after the chimera's lion on Greek vases, gyri on
-  the brain, the neck's vertebrae as an X-ray shows them, and a rounded triangle of an eye. The brain shows the two cores at work: its colour the second
-  core's load (cyan idle to red at 85 %), its brightness the first core's. In the Bestiary each animal is traced side
+  the soft palate white), with no outline: gyri on the brain, the spine as two lines, and an eye that blinks, shuts
+  while a key holds the voice and turns red after ten seconds of it. The brain shows the two cores at work: its
+  colour the second core's load (cyan idle to red at 85 %), its fill the first core's (the busier, the more opaque).
+  In the Bestiary each animal is traced side
   on in its own colour, its airway lit inside it. Each knob has its own colour (K1 orange, K2 yellow, K3 violet,
   K4 cyan), and the beatbox colours its sounds by family.
 - **The Studio:** a web page that prepares the words (eight slots) with the CMU Pronouncing Dictionary, lets you try
