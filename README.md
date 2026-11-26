@@ -1,5 +1,7 @@
 # FMB Vocal
 
+<img src="app/site/img/banner.png" width="100%" alt="FMB Vocal for the FM-1: three of its screens, the robot in the Bestiary, the beatbox's sequencer and the voice singing words">
+
 > **A physically simulated singing voice for the M-VAVE FM-1.**
 >
 > **FMB** stands for **Flying Mythical Beast**, a name the chimera goes by in a card game.
