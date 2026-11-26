@@ -305,6 +305,11 @@ def theme_emu(path):
     html = html.replace("</style>", EMU_CSS + "</style>", 1)
     if "class=\"credit\"" not in html:   # the credit under its title, as every page
         html = re.sub(r"(<main>)", r"\1\n" + CREDIT.replace("\\", "\\\\"), html, count=1)
+    # /emu/ opened on its own goes to the Studio (which shows the emulator beside the words); inside the Studio's
+    # iframe it stays the emulator. First in <head>, so nothing loads before it
+    if "EMU_TO_STUDIO" not in html:
+        html = re.sub(r"(<head[^>]*>)", r"\1\n<script>/* EMU_TO_STUDIO */if (window.top === window) "
+                      r"location.replace('../studio/' + location.search + location.hash);</script>", html, count=1)
     path.write_text(html, encoding="utf-8")
 
 
