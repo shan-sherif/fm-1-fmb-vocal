@@ -37,17 +37,19 @@
 Firmware for the M-VAVE FM-1 that does one thing: a simulated voice. Every sound comes from a simulated airway
 (lungs, vocal folds, throat, mouth and nose), not from samples: CHIMERA's design, kept here. The same mouth speaks,
 sings words, tunes and your own melodies, and beatboxes; a cat's, a songbird's, a seal's, an alligator's and an
-elephant's airways join it.
+elephant's airways join it, and a robot's tube that wubs like dubstep.
 
 | LFO: the cat | LFO: the songbird | LFO: the seal |
 | :---: | :---: | :---: |
 | <img src="app/site/img/preview-cat.gif" width="240" alt="The FM-1's screen playing the cat: a key held, its breath lighting its airway, then its meow"> | <img src="app/site/img/preview-bird.gif" width="240" alt="The FM-1's screen playing the songbird: a key held, its two valves opening, then its flute phrase"> | <img src="app/site/img/preview-seal.gif" width="240" alt="The FM-1's screen playing the seal: a key held, its breath pulsing through its throat and mouth, then its falling trill"> |
-| **LFO: the alligator** | **LFO: the elephant** | **SEQ: the beatbox** |
-| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long body, the nose along its snout"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips lighting at the trunk's base"> | <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> |
-| **SEQ twice: your melody** | **ENV: a tune** | **WORDS: a syllable a key** |
-| <img src="app/site/img/preview-melody.gif" width="240" alt="The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again"> | <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn"> | <img src="app/site/img/preview-words.gif" width="240" alt="The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next"> |
-| **VOWEL: the knobs move the mouth** | **PLAY: speaking the line** | **ARP: the tongue by hand** |
-| <img src="app/site/img/preview-vowel.gif" width="240" alt="The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, with their formants"> | <img src="app/site/img/preview-speak.gif" width="240" alt="The FM-1's screen while PLAY speaks the line: the head moving through it"> | <img src="app/site/img/preview-tongue.gif" width="240" alt="The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named"> |
+| **LFO: the alligator** | **LFO: the elephant** | **LFO: the robot** |
+| <img src="app/site/img/preview-gator.gif" width="240" alt="The FM-1's screen playing the alligator: its bellow, its long body, the nose along its snout"> | <img src="app/site/img/preview-elephant.gif" width="240" alt="The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips lighting at the trunk's base"> | <img src="app/site/img/preview-robot.gif" width="240" alt="The FM-1's screen playing the robot: a key held, its mouth opening and shutting with the wobble, then its drop"> |
+| **SEQ: the beatbox** | **SEQ twice: your melody** | **ENV: a tune** |
+| <img src="app/site/img/preview-beat.gif" width="240" alt="The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps"> | <img src="app/site/img/preview-melody.gif" width="240" alt="The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again"> | <img src="app/site/img/preview-sing.gif" width="240" alt="The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn"> |
+
+| WORDS: a syllable a key | VOWEL: the knobs move the mouth | PLAY: speaking the line | ARP: the tongue by hand |
+| :---: | :---: | :---: | :---: |
+| <img src="app/site/img/preview-words.gif" width="180" alt="The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next"> | <img src="app/site/img/preview-vowel.gif" width="180" alt="The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, with their formants"> | <img src="app/site/img/preview-speak.gif" width="180" alt="The FM-1's screen while PLAY speaks the line: the head moving through it"> | <img src="app/site/img/preview-tongue.gif" width="180" alt="The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named"> |
 
 <sub>The firmware's own screen, from the host simulator (`tools/landing_anims.py`).</sub>
 
@@ -90,8 +92,9 @@ elephant's airways join it.
   zap, whistle, chug), its two-voiced songbird (flute phrase, canary trill, chirps, finch buzz), its American
   alligator (a chaotic roar through a long, nearly shut tract: bellow, growl, hiss, water dance) and its African
   elephant (infrasonic rumbles; a trumpet from a lip valve at the base of its 1.85 m trunk: rumble, trumpet, squeak),
-  and FMB Vocal's own **cat** (`app/dsp/cat.h`: a small airway and nose; meow, purr, hiss, trill, yowl), on the keys
-  and PLAY, their settings on the knobs. From 0.2.0 they play tunes (ENV) and your melodies (SEQ) too, each note
+  and FMB Vocal's own **cat** (`app/dsp/cat.h`: a small airway and nose; meow, purr, hiss, trill, yowl) and, from
+  0.3.0, **robot** (`app/dsp/robot.h`: a dubstep voice, a harsh voice box under a tube an LFO swings from "oo" to "aa";
+  wub, yoi, laser, riser, drop), on the keys and PLAY, their settings on the knobs. From 0.2.0 they play tunes (ENV) and your melodies (SEQ) too, each note
   their voice held or one of their calls (K4 SOUND). LFO again returns to the human voice.
 - **MIDI in** plays the voice as the keys do, and lights the keys its notes fall on. From a MIDI controller,
   aftertouch deepens the vibrato (as pressing harder on a key does), the **mod wheel** (CC1) adds breath, and
@@ -179,7 +182,7 @@ Studio, SAVE on a preset, then a power cycle).
 | Path | What |
 | --- | --- |
 | `engine/` | The C port of CHIMERA's voice (MIT, Jameson Hodge's notice kept): `ch_voice.c` the literal audio rate (the reference), `ch_fast.c` the same rearranged for the FM-1 (the full-physics attempt), `ch_tract.c` the anatomy, `ch_wave.c` the FM-1's waveguide tract, `ch_control.c` the control rate (articulators, gestural score, source, contacts), `ch_speech.c` the English front end, planner and vowel pad (with `ch_phon_data.h`, generated from CHIMERA's tables, and `ch_dict_data.h`, ~480 CMUdict words), `ch_live.c` live singing, `ch_profile.c` the head's outlines, `ch_beat.c` the beatbox (its ten sounds, beats and sequencer), `ch_song.c` Sing mode's tunes and the fitting of words to them (its planner in `ch_speech.c`), `ch_creature.c` the Bestiary (the creature voice and calls, the seal, the songbird's airway and syrinx, with `ch_syrinx_waves.h` its precomputed cycles, the alligator, the elephant, the interpolator that brings their half rate up), `ch_common.h` / `ch_str.h` what they share |
-| `app/` | The firmware, on fm1-base (started from its template): `app.c` (the voice on two cores, the words, the word editor, the pages, VOWEL, the presets, the tunes, the beatbox, the Bestiary, the screens), `app.h`, `fm1.toml`; `dsp/voice_bodies.h` (CHIMERA's three bodies, male, female and child: their anatomy settings, speaking pitch and vowel ranges), `dsp/words_default.h` (CHIMERA's presets as the first word slots); `web/studio.html` the Studio; `site/landing.md` the front page; `docs/MANUAL.md` and its screenshots; `tests/` the simulator's scripts |
+| `app/` | The firmware, on fm1-base (started from its template): `app.c` (the voice on two cores, the words, the word editor, the pages, VOWEL, the presets, the tunes, the beatbox, the Bestiary, the screens), `app.h`, `fm1.toml`; `dsp/voice_bodies.h` (CHIMERA's three bodies, male, female and child: their anatomy settings, speaking pitch and vowel ranges), `dsp/words_default.h` (CHIMERA's presets as the first word slots); `dsp/cat.h` and `dsp/robot.h` (FMB Vocal's own creatures); `web/studio.html` the Studio; `site/landing.md` the front page; `docs/MANUAL.md` and its screenshots; `tests/` the simulator's scripts |
 | `tools/` | `make_site.py` (the site: fm1-base's, plus the Studio, the emulator, the black-and-grey theme, the credits, the licence texts), `manual_shots.sh` (the manual's screenshots from the simulator), `landing_anims.py` (the front page's animated previews), `hub_image.py` (the Firmware Hub's card image, from the simulator's home screen) |
 | `lab/` | The test bench: CHIMERA itself as a Rust library, the recorder, the C replay checks, the front end's checks, comparisons, cost estimates, the table generators |
 | `base/` | [fm1-base](https://github.com/charlesvestal/fm1-base) by Charles Vestal (MPL-2.0), with felucca-bsp in `base/bsp/`: plain folders, copied from upstream ([Based on fm1-base](#based-on-fm1-base)) |
@@ -233,7 +236,8 @@ The simulator's tests (`app/tests/`): `silence`, `rest`, `words`, `pages`, `scre
 `crack` (no crack where a nasal ends a word),
 `beat` (the beatbox: pads, a beat, step editing, saving), `seal` (the Bestiary's seal: keys, calls, settings),
 `bird` (the Bestiary's songbird: keys, calls, settings), `beasts` (the alligator and the elephant: keys, calls, the
-trumpet's lips, settings), `cat` (the cat: keys, meow, purr, hiss, its levels unclipped, settings), `sing` (the tunes: a slot sung to its end, the tune, tempo
+trumpet's lips, settings), `cat` (the cat: keys, meow, purr, hiss, its levels unclipped, settings), `robot` (the
+robot: the wobble's vowel, its calls under the limiter, settings), `sing` (the tunes: a slot sung to its end, the tune, tempo
 and key kept),
 `stress` (three minutes of random playing).
 

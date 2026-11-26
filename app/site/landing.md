@@ -15,19 +15,20 @@ own vowels, and SEL held with PRESET and SELECT blends them (gender and age). AR
 sound comes from the simulated airway, not from samples. It sings whole lines by itself on built-in tunes (ENV), or on melodies you write
 with the keys (SEQ twice: MELODY). The
 same mouth beatboxes (SEQ: ten drum sounds, preset beats and a step sequencer), and LFO swaps it for a cat's, a
-songbird's, a seal's, an alligator's or an elephant's.
+songbird's, a seal's, an alligator's, an elephant's or a robot's (dubstep).
 
-![The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next](img/preview-words.gif "WORDS: a syllable a key")
-![The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, ER, OW, AH, EY, with their formants](img/preview-vowel.gif "VOWEL: the knobs move the mouth")
-![The FM-1's screen while PLAY speaks the line: the head moving through it](img/preview-speak.gif "PLAY: speaking the line")
-![The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn](img/preview-sing.gif "ENV: a tune")
-![The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps](img/preview-beat.gif "SEQ: the beatbox")
-![The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again](img/preview-melody.gif "SEQ twice: your melody")
 ![The FM-1's screen playing the cat: a key held, its breath lighting its airway, then its meow](img/preview-cat.gif "LFO: the cat")
 ![The FM-1's screen playing the songbird: a key held, its two valves opening, then its flute phrase](img/preview-bird.gif "LFO, then ALGORITHM: the songbird")
 ![The FM-1's screen playing the seal: a key held, its breath pulsing through its throat and mouth, then its falling trill](img/preview-seal.gif "LFO, then ALGORITHM: the seal")
 ![The FM-1's screen playing the alligator: its bellow, its long throat and mouth, the nose above](img/preview-gator.gif "LFO: the alligator")
 ![The FM-1's screen playing the elephant: the trumpet chosen, then played, its lips' valve lighting at the trunk's base](img/preview-elephant.gif "LFO: the elephant")
+![The FM-1's screen playing the robot: a key held, its mouth opening and shutting with the wobble, then its drop](img/preview-robot.gif "LFO: the robot")
+![The FM-1's screen beatboxing Boots and cats: the head making each sound, its name, the playhead on the sixteen steps](img/preview-beat.gif "SEQ: the beatbox")
+![The FM-1's MELODY page singing melody 1 a syllable a note: the playhead on its 32 steps, the line where the words start again](img/preview-melody.gif "SEQ twice: your melody")
+![The FM-1's screen singing slot 1 on the Dreamy tune: the head singing, the syllable, the melody's notes lit in turn](img/preview-sing.gif "ENV: a tune")
+![The FM-1's screen singing Hello there, I am a voice made of air, a syllable a key: the head moving, the syllable sounding and the next](img/preview-words.gif "WORDS: a syllable a key")
+![The FM-1's screen in VOWEL mode: a held note while the knobs sweep the vowels, ER, OW, AH, EY, with their formants](img/preview-vowel.gif "VOWEL: the knobs move the mouth")
+![The FM-1's screen while PLAY speaks the line: the head moving through it](img/preview-speak.gif "PLAY: speaking the line")
 ![The FM-1's screen in TONGUE mode: a held note while the knobs move the tongue's body and tip, the vowel nearest named](img/preview-tongue.gif "ARP: the tongue by hand")
 
 The voice uses both of the FM-1's processor cores: the second core simulates the sound waves in the throat, mouth and

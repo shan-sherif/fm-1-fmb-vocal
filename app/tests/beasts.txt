@@ -2,7 +2,7 @@
 # (three steps on, after the cat, the songbird and the seal: CHIMERA's mammal airway at half the rate, interpolated up). A key held roars at its pitch (C4 three octaves down:
 # CHIMERA's creatureKeyHz centres its 12..120 Hz on middle C), PLAY its bellow. ALGORITHM on: the elephant; a key
 # rumbles (C4 four octaves down), PRESET picks the trumpet (the lip valve at the trunk's base), PLAY plays it; SEL its
-# airway page; kept through a reboot; ALGORITHM on wraps to the cat; LFO back to the human voice.
+# airway page; kept through a reboot; ALGORITHM on past the robot wraps to the cat; LFO back to the human voice.
 #   python base/tools/build.py app --host; app/build/host/fmb-vocal_host app/tests/beasts.txt app/build/host
 wait 400
 listen
@@ -89,7 +89,9 @@ wait 400
 expect creature 4
 expect creaudio 4
 expect sealpick 1
-# ALGORITHM on: round to the cat; LFO: the human voice
+# ALGORITHM on: the robot (0.3.0), then round to the cat; LFO: the human voice
+spin ALGO 1
+said CREATURE
 spin ALGO 1
 said CAT
 wait 300

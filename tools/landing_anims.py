@@ -114,6 +114,13 @@ def elephant():
     return interleave([(0, "tap LFO\nwait 100\nspin ALGO 4\nwait 100"), (600, "spin PRESET 1"), (1400, "tap PLAY")], "elephant", 3.0)
 
 
+def robot():
+    """LFO then ALGORITHM five on: the robot, a key held (its wobble, the mouth opening and shutting), then PRESET: the
+    drop, PLAY: the dive into a slow wub"""
+    return interleave([(0, "tap LFO\nwait 100\nspin ALGO 5\nwait 100"), (300, "key 7 down"), (2300, "key 7 up"),
+                       (2500, "spin PRESET 4"), (2700, "tap PLAY")], "robot", 5.4)
+
+
 def sing():
     """ENV: slot 1 sung on the Dreamy tune, the head singing, the melody moving"""
     return interleave([(0, "tap ENV"), (300, "tap PLAY")], "sing", 4.2)
@@ -136,7 +143,7 @@ def main():
     for f in WORK.glob("*.png"):
         f.unlink()
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("melody", melody()), ("tongue", tongue()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("sing", sing())):
+    for name, lines in (("words", words()), ("vowel", vowel()), ("speak", speak()), ("beat", beat()), ("melody", melody()), ("tongue", tongue()), ("cat", cat()), ("bird", bird()), ("seal", seal()), ("gator", gator()), ("elephant", elephant()), ("robot", robot()), ("sing", sing())):
         script = WORK / f"{name}.txt"
         # (a fresh boot each: the voice at rest, slot 1, page 1)
         script.write_text("\n".join(["wait 400"] + lines) + "\n")

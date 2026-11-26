@@ -9,8 +9,8 @@ and nose), not samples.
 
 FMB Vocal sings words: each key sings the next syllable of a line, at the key's pitch, through the engine's
 text-to-speech front end. In VOWEL mode the keys play pitch and the knobs move the mouth through the vowels. It also
-sings whole lines on built-in tunes (ENV). The same mouth beatboxes (SEQ), and LFO swaps it for a seal's, a
-a cat's, a songbird's, a seal's, an alligator's or an elephant's (the Bestiary).
+sings whole lines on built-in tunes (ENV). The same mouth beatboxes (SEQ), and LFO swaps it for
+a cat's, a songbird's, a seal's, an alligator's, an elephant's or a robot's (the Bestiary).
 
 ![The boot screen: FMB Vocal, the version, the credits](img/boot.png "The boot screen")
 ![The home screen in WORDS: the head singing, NOW LO, NEXT THERE, page 1's knobs at the bottom](img/home-words.png "WORDS: singing the lo of Hello, there next; page 1's knobs below")
@@ -63,7 +63,7 @@ The FM-1 itself has no mod wheel or pitch bend: these come from the controller. 
 | SAVE | Keeps the knobs in the voice preset, the vowel snapshots and the settings, through power-off. Its light is on while something is unsaved. |
 | ENV | Sings the word slot on one of CHIMERA's tunes ([below](#tunes)). From 0.8.0. |
 | SEQ | The beatbox: the keys become drum sounds, with a step sequencer ([below](#beatbox)). SEQ again: MELODY, your own melody sung ([below](#melody)); SEQ switches between them, HOME back to the words. |
-| LFO | The Bestiary (the cat, the songbird, the seal, the alligator or the elephant) and back to the human voice ([below](#bestiary)). Its light is on in the Bestiary. From 0.7.0. |
+| LFO | The Bestiary (the cat, the songbird, the seal, the alligator, the elephant or the robot) and back to the human voice ([below](#bestiary)). Its light is on in the Bestiary. From 0.7.0. |
 | GLO | The debug page (the cores' timings) and back. From 0.8.0 it also opens over the beatbox and the SING page, to see their load while they play. |
 
 ## The knobs
@@ -268,14 +268,16 @@ again on the 3rd note the 3rd time through.
 
 **LFO** swaps the human voice for an animal's, and **LFO** again goes back to the human body ALGORITHM holds. On the
 Bestiary page **ALGORITHM** chooses the creature, in this order: the **cat** (FMB Vocal's own, where the Bestiary
-opens), then the **songbird**, the **seal**, the **alligator** and the **elephant** (CHIMERA's Bestiary). Each one is simulated the way the human voice
-is, from its own airway and its own sound source.
+opens), then the **songbird**, the **seal**, the **alligator** and the **elephant** (CHIMERA's Bestiary), and last the
+**robot** (FMB Vocal's own, from 0.3.0). Each one is simulated the way the human voice is, from its own airway and its
+own sound source.
 
 On every creature:
 
 - **The keys** play its pitch: it breathes while a key is held, the last key held sounding. The keys are shifted by
   whole octaves to sit in the creature's range (CHIMERA's mapping, centred on middle C): one octave up for the cat,
-  three up for the songbird, one up for the seal, three down for the alligator, four down for the elephant.
+  three up for the songbird, one up for the seal, three down for the alligator, four down for the elephant, one down
+  for the robot.
 - **PRESET** chooses one of its calls. **PLAY** plays it; **FX + a key** plays it at the key's pitch.
 - **K1-K4** are its settings, on two pages (**SEL**).
 - **SAVE** keeps each creature's settings, its call and its SOUND (below).
@@ -304,7 +306,7 @@ The screen shows the animal and its airway in the head's place, the pitch it is 
 The screen draws the animal side on, traced in its own colour, with its airway inside: the lungs, the glottis, the
 throat, the mouth (or beak) and the nose (or trunk), the breath lighting them as it flows. The mouth or beak opens
 as its setting does, the nose lights as NOSE opens it, and the songbird's two valves and the elephant's lips light
-as they open.
+as they open. The robot's mouth opens and shuts with its wobble, and its antenna's tip lights with it.
 
 ### The cat
 
@@ -401,6 +403,29 @@ into chaos), SQUEAK (the lips tensed, high).
 (Both are longer airways than the human's: the alligator's 68 cm, the elephant's 2.6 m with its trunk. Their sound is
 low, so on the FM-1 each is simulated at half the rate and smoothed back up: measured on the FM-1, the elephant's
 trumpet peaks at 64 % of core 2 and the alligator's bellow at 30 %. Their levels are within a few dB of CHIMERA's.)
+
+### The robot
+
+A **robot**, FMB Vocal's second creature of its own (from 0.3.0), made for dubstep. A dubstep "wub" is a buzzing tone
+under a filter that an LFO sweeps up and down; a mouth going from "oo" to "aa" sweeps the same frequencies, so the
+robot is a voice box under a 16 cm tube (as long as a man's throat and mouth), and an LFO swings the tube between the
+two vowels. Its voice box is held perfectly steady (no vibrato or drift: a machine's) and made harsh; **GRIT** adds a
+growl (a subharmonic an octave down, chaos in the voice box and a little fizz). Each note wubs in the same way, from
+"oo". Its range is 30 to 700 Hz.
+
+| Page | K1 | K2 | K3 | K4 |
+| --- | --- | --- | --- | --- |
+| 1 WOBBLE | Wobble (the LFO's rate, Hz) | Depth (how far it swings from Mouth toward the whole sweep) | Grit (the growl) | Buzz (the voice box's harshness) |
+| 2 TUBE | Mouth (the vowel it rests on: "oo" ← → "aa") | Breath (the pressure, cmH₂O) | | |
+
+Its calls: WUB (two seconds of the wobble the knobs set), YOI (a gritty growl, the mouth swept open and shut by hand),
+LASER (a zap diving from high to low), RISER (rising, the wobble faster and grittier as it goes), DROP (a dive into a
+slow, deep wub). On the SING and MELODY pages its SOUND HELD wubs each note.
+
+![The robot: 131 Hz held, its bellows, voice box and tube, the mouth as open as the wobble's vowel, the call WUB chosen, page 1's settings](img/robot.png "LFO, then ALGORITHM: the robot")
+
+(Its tube is a little shorter than the human voice's and runs at the full rate, so it should cost core 2 a little less
+than the human voice does; not yet measured on the FM-1.)
 
 ## Typing words
 
